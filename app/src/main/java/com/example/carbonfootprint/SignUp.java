@@ -58,30 +58,27 @@ public class SignUp extends AppCompatActivity {
             if(!username.isEmpty() && !password.isEmpty() && !email.isEmpty()) {
                 progressBar.setVisibility(View.VISIBLE);
                 Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        String[] field = new String[3];
-                        field[0] = "username";
-                        field[1] = "password";
-                        field[2] = "email";
-                        String[] data = new String[3];
-                        data[0] = username;
-                        data[1] = password;
-                        data[2] = email;
-                        PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/signup.php", "POST", field, data);
-                        if (putData.startPut()) {
-                            if (putData.onComplete()) {
-                                progressBar.setVisibility(View.GONE);
-                                String result = putData.getResult();
-                                if (result.equals("Sign Up Success")) {
-                                    Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-                                    Intent intent = new Intent(getApplicationContext(),Login.class);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
-                                    Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-                                }
+                handler.post(() -> {
+                    String[] field = new String[3];
+                    field[0] = "username";
+                    field[1] = "password";
+                    field[2] = "email";
+                    String[] data = new String[3];
+                    data[0] = username;
+                    data[1] = password;
+                    data[2] = email;
+                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/signup.php", "POST", field, data);
+                    if (putData.startPut()) {
+                        if (putData.onComplete()) {
+                            progressBar.setVisibility(View.GONE);
+                            String result = putData.getResult();
+                            if (result.equals("Sign Up Success")) {
+                                Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(getApplicationContext(),Login.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
                             }
                         }
                     }
