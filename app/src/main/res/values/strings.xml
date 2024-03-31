@@ -30,9 +30,9 @@
     <string name="_1_how_many_people_live_in_your_household">1. How many people live in your household?</string>
     <string name="_3_how_much_energy_do_you_approximately_consume_monthly_to_the_average_of_three_months_bill">3. How much energy do you approximately consume monthly? (To the average of three months bill)</string>
     <string name="below_100kwh">Below 100kWh</string>
-    <string name="_100_199kwh">100-199kWh</string>
-    <string name="_200_399kwh">200-399kWh</string>
-    <string name="_400_599kwh">400-599kWh</string>
+    <string name="_100_199kwh">100–199kWh</string>
+    <string name="_200_399kwh">200–399kWh</string>
+    <string name="_400_599kwh">400–599kWh</string>
     <string name="more_than_600kwh">More than 600kWh</string>
     <string name="_4_how_do_you_take_a_bath_on_daily_basis">4. How do you take a bath on daily basis?</string>
     <string name="shower_with_no_heater">Shower with no heater</string>

@@ -51,12 +51,9 @@ public class Survey extends AppCompatActivity {
 
         Button submitButton = findViewById(R.id.submit_button);
         //submitButton.setOnClickListener(v -> insertAnswersIntoDatabase());
-        submitButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(Survey.this, MainPage.class);
-                startActivity(intent);
-            }
+        submitButton.setOnClickListener(v -> {
+            Intent intent = new Intent(Survey.this, MainPage.class);
+            startActivity(intent);
         });
     }
 

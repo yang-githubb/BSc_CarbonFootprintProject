@@ -44,56 +44,50 @@ public class SignUp extends AppCompatActivity {
         textViewLogin = findViewById(R.id.loginText);
         progressBar = findViewById(R.id.progress);
 
-        textViewLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(),Login.class);
-                startActivity(intent);
-            }
+        textViewLogin.setOnClickListener(v -> {
+            Intent intent = new Intent(getApplicationContext(),Login.class);
+            startActivity(intent);
         });
 
-        buttonSignUp.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String username, password, email;
-                username = String.valueOf(textInputLayoutUsername.getText());
-                password = String.valueOf(textInputLayoutPassword.getText());
-                email = String.valueOf(textInputLayoutEmail.getText());
+        buttonSignUp.setOnClickListener(v -> {
+            String username, password, email;
+            username = String.valueOf(textInputLayoutUsername.getText());
+            password = String.valueOf(textInputLayoutPassword.getText());
+            email = String.valueOf(textInputLayoutEmail.getText());
 
-                if(!username.isEmpty() && !password.isEmpty() && !email.isEmpty()) {
-                    progressBar.setVisibility(View.VISIBLE);
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            String[] field = new String[3];
-                            field[0] = "username";
-                            field[1] = "password";
-                            field[2] = "email";
-                            String[] data = new String[3];
-                            data[0] = username;
-                            data[1] = password;
-                            data[2] = email;
-                            PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/signup.php", "POST", field, data);
-                            if (putData.startPut()) {
-                                if (putData.onComplete()) {
-                                    progressBar.setVisibility(View.GONE);
-                                    String result = putData.getResult();
-                                    if (result.equals("Sign Up Success")) {
-                                        Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-                                        Intent intent = new Intent(getApplicationContext(),Login.class);
-                                        startActivity(intent);
-                                        finish();
-                                    } else {
-                                        Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-                                    }
+            if(!username.isEmpty() && !password.isEmpty() && !email.isEmpty()) {
+                progressBar.setVisibility(View.VISIBLE);
+                Handler handler = new Handler(Looper.getMainLooper());
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        String[] field = new String[3];
+                        field[0] = "username";
+                        field[1] = "password";
+                        field[2] = "email";
+                        String[] data = new String[3];
+                        data[0] = username;
+                        data[1] = password;
+                        data[2] = email;
+                        PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/signup.php", "POST", field, data);
+                        if (putData.startPut()) {
+                            if (putData.onComplete()) {
+                                progressBar.setVisibility(View.GONE);
+                                String result = putData.getResult();
+                                if (result.equals("Sign Up Success")) {
+                                    Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
+                                    Intent intent = new Intent(getApplicationContext(),Login.class);
+                                    startActivity(intent);
+                                    finish();
+                                } else {
+                                    Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }
-                    });
-                } else {
-                    Toast.makeText(getApplicationContext(),"All fields are required!",Toast.LENGTH_SHORT).show();
-                }
+                    }
+                });
+            } else {
+                Toast.makeText(getApplicationContext(),"All fields are required!",Toast.LENGTH_SHORT).show();
             }
         });
     }
