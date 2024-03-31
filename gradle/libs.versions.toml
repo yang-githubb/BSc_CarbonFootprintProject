@@ -1,5 +1,6 @@
 [versions]
 agp = "8.3.0"
+googleMaterial = "<version>"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
@@ -24,6 +25,7 @@ annotation = { group = "androidx.annotation", name = "annotation", version.ref =
 lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 lifecycle-viewmodel-ktx = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycleViewmodelKtx" }
 google-material = { group = "com.google.android.material", name = "material", version.ref = "materialVersion" }
+material-vversion = { module = "com.google.android.material:material", version.ref = "googleMaterial" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
