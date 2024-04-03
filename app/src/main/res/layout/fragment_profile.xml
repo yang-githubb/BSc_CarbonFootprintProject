@@ -5,12 +5,9 @@
     android:layout_height="match_parent"
     tools:context=".profile">
 
-    <TextView
-        android:id="@+id/textView"
+    <com.github.mikephil.charting.charts.PieChart
+        android:id="@+id/pieChart"
         android:layout_width="match_parent"
-        android:layout_height="430dp"
-        android:textSize="35sp"
-        android:gravity="center"
-        android:text="@string/profile" />
+        android:layout_height="match_parent" />
 
 </FrameLayout>

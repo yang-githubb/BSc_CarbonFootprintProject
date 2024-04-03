@@ -45,7 +45,7 @@ public class SignUp extends AppCompatActivity {
         progressBar = findViewById(R.id.progress);
 
         textViewLogin.setOnClickListener(v -> {
-            Intent intent = new Intent(getApplicationContext(),Login.class);
+            Intent intent = new Intent(getApplicationContext(), Login.class);
             startActivity(intent);
         });
 
@@ -55,7 +55,7 @@ public class SignUp extends AppCompatActivity {
             password = String.valueOf(textInputLayoutPassword.getText());
             email = String.valueOf(textInputLayoutEmail.getText());
 
-            if(!username.isEmpty() && !password.isEmpty() && !email.isEmpty()) {
+            if (!username.isEmpty() && !password.isEmpty() && !email.isEmpty()) {
                 progressBar.setVisibility(View.VISIBLE);
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.post(() -> {
@@ -67,24 +67,24 @@ public class SignUp extends AppCompatActivity {
                     data[0] = username;
                     data[1] = password;
                     data[2] = email;
-                    PutData putData = new PutData("http://10.100.19.222/CarbonFootprintFYP/signup.php", "POST", field, data);
+                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/signup.php", "POST", field, data);
                     if (putData.startPut()) {
                         if (putData.onComplete()) {
                             progressBar.setVisibility(View.GONE);
                             String result = putData.getResult();
                             if (result.equals("Sign Up Success")) {
-                                Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(getApplicationContext(),Login.class);
+                                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
+                                Intent intent = new Intent(getApplicationContext(), Login.class);
                                 startActivity(intent);
                                 finish();
                             } else {
-                                Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getApplicationContext(), result, Toast.LENGTH_SHORT).show();
                             }
                         }
                     }
                 });
             } else {
-                Toast.makeText(getApplicationContext(),"All fields are required!",Toast.LENGTH_SHORT).show();
+                Toast.makeText(getApplicationContext(), "All fields are required!", Toast.LENGTH_SHORT).show();
             }
         });
     }
