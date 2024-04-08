@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -24,6 +25,8 @@ public class Login extends AppCompatActivity {
     Button buttonLogin;
     TextView textViewSignUp;
     ProgressBar progressBar;
+    private static final String TAG = Survey.class.getSimpleName();
+
 
 
     @Override
@@ -63,7 +66,7 @@ public class Login extends AppCompatActivity {
                     String[] data = new String[2];
                     data[0] = username;
                     data[1] = password;
-                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/login.php", "POST", field, data);
+                    PutData putData = new PutData("http://10.100.18.9/CarbonFootprintFYP/login.php", "POST", field, data);
                     if (putData.startPut()) {
                         if (putData.onComplete()) {
                             progressBar.setVisibility(View.GONE);
@@ -74,6 +77,7 @@ public class Login extends AppCompatActivity {
                                 startActivity(intent);
                                 finish();
                             } else {
+                                Log.d(TAG, result);
                                 Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
                             }
                         }

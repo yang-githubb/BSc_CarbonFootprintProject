@@ -88,5 +88,8 @@
     <string name="profile">Profile</string>
     <string name="facts">Facts</string>
     <string name="action">Action</string>
+    <string name="_1kg"><![CDATA[<1kg]]></string>
+    <string name="_1_01kg_5kg">1.01kg-5kg</string>
+    <string name="_5kg"><![CDATA[>5kg]]></string>
     >
 </resources>

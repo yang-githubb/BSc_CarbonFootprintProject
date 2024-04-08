@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.Toast;
@@ -72,34 +73,37 @@ public class Survey extends AppCompatActivity {
     }
 
     void insertAnswersIntoDatabase(int userId, int[] selectedOptionIds) {
-        for (int i = 0; i < selectedOptionIds.length; i++) {
-            int questionId = i + 1;
-            int optionId = selectedOptionIds[i];
-
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(() -> {
-                String[] field = new String[3];
-                field[0] = "userId";
-                field[1] = "questionId";
-                field[2] = "optionId";
-                String[] data = new String[3];
-                data[0] = String.valueOf(userId);
-                data[1] = String.valueOf(questionId);
-                data[2] = String.valueOf(optionId);
-                PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/user_answer.php", "POST", field, data);
-                if (putData.startPut()) {
-                    if (putData.onComplete()) {
-                        String result = putData.getResult();
-                        Log.d(TAG,result);
-                        if (result.equals("Insert Success")) {
-                            Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-//                            Intent intent = new Intent(getApplicationContext(), MainPage.class);
-//                            startActivity(intent);
-//                            finish();
-                        }
-                    }
-                }
-            });
-        }
+//        for (int i = 0; i < selectedOptionIds.length; i++) {
+//            int questionId = i + 1;
+//            int optionId = selectedOptionIds[i];
+//
+//            Handler handler = new Handler(Looper.getMainLooper());
+//            handler.post(() -> {
+//                String[] field = new String[3];
+//                field[0] = "userId";
+//                field[1] = "questionId";
+//                field[2] = "optionId";
+//                String[] data = new String[3];
+//                data[0] = String.valueOf(userId);
+//                data[1] = String.valueOf(questionId);
+//                data[2] = String.valueOf(optionId);
+//                PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/user_answer.php", "POST", field, data);
+//                if (putData.startPut()) {
+//                    if (putData.onComplete()) {
+//                        String result = putData.getResult();
+//                        Log.d(TAG,result);
+//                        if (result.equals("Insert Success")) {
+//                            Log.d(TAG,result);
+//                            Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
+//                        } else {
+//                            Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
+//                        }
+//                    }
+//                }
+//            });
+//        }
+        Intent intent = new Intent(getApplicationContext(), MainPage.class);
+        startActivity(intent);
+        finish();
     }
 }

@@ -185,17 +185,17 @@
                     android:id="@+id/q6_option1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/rack"/>
+                    android:text="@string/_1kg"/>
                 <RadioButton
                     android:id="@+id/q6_option2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/dryer"/>
+                    android:text="@string/_1_01kg_5kg"/>
                 <RadioButton
                     android:id="@+id/q6_option3"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/send_to_launderette"/>
+                    android:text="@string/_5kg"/>
             </RadioGroup>
 
             <TextView
