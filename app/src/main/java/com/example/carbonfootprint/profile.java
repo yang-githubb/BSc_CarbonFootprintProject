@@ -1,67 +1,27 @@
 package com.example.carbonfootprint;
-
-import android.app.MediaRouteButton;
-import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import androidx.fragment.app.Fragment;
-
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
-import android.widget.Toast;
-
-import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.data.PieData;
-import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.data.PieEntry;
-import com.github.mikephil.charting.utils.ColorTemplate;
 import com.vishnusivadas.advanced_httpurlconnection.FetchData;
-import com.vishnusivadas.advanced_httpurlconnection.PutData;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
-
 public class profile extends Fragment {
 
     // Parameters
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
     private static final String TAG = profile.class.getSimpleName();
 
-    private String mParam1;
-    private String mParam2;
-    int userId = 1;
-    ProgressBar progressBar;
+    double carbonfootprint_amount=0;
 
 
     public profile() {
         // Required empty public constructor
-    }
-
-    public static profile newInstance(String param1, String param2) {
-        profile fragment = new profile();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
@@ -80,18 +40,89 @@ public class profile extends Fragment {
             field[0] = "userId";
             String[] data = new String[1];
             data[0] = "123";
-            FetchData fetchData = new FetchData("http://10.100.18.9/CarbonFootprintFYP/carbCalc.php?userId=1");
+            FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/carbCalc.php?userId=1");
             if (fetchData.startFetch()) {
                 if (fetchData.onComplete()) {
                     String result = fetchData.getResult();
-                    Log.d(TAG, "Response: '" + result + "'");
-                    Log.d(TAG, "Trimmed length: " + result.trim().length());
-                    //End ProgressBar (Set visibility to GONE)
-                    Log.i("FetchData", result);
+                    try {
+                        // Parse the JSON string to a JSONArray
+                        JSONArray jsonArray = new JSONArray(result);
+
+                        // Iterate over each JSONObject in the JSONArray
+                        for (int i = 0; i < jsonArray.length(); i++) {
+                            JSONObject jsonObject = jsonArray.getJSONObject(i);
+
+                            // Extract and log values from the current JSONObject
+                            String question_id = jsonObject.getString("question_id");
+                            String optionIndex = jsonObject.getString("option_index");
+
+                            double electricity_emmisionfactor = 0.758;
+                            double fuel_emmisionfactor = 2.34502;
+                            double waste_emmisionfactor = 0.497;
+
+                            switch (question_id) {
+                                case "3":
+                                    switch (optionIndex) {
+                                        case "1":
+                                            carbonfootprint_amount += 600 * electricity_emmisionfactor;
+                                            break;
+                                        case "2":
+                                            carbonfootprint_amount += 1800 * electricity_emmisionfactor;
+                                            break;
+                                        case "3":
+                                            carbonfootprint_amount += 3000 * electricity_emmisionfactor;
+                                            break;
+                                        case "4":
+                                            carbonfootprint_amount += 5400 * electricity_emmisionfactor;
+                                            break;
+                                        case "5":
+                                            carbonfootprint_amount += 12000 * electricity_emmisionfactor;
+                                            break;
+                                    }
+                                    break;
+                                case "6":
+                                    switch (optionIndex) {
+                                        case "1":
+                                            carbonfootprint_amount += 6000 * waste_emmisionfactor;
+                                            break;
+                                        case "2":
+                                            carbonfootprint_amount += 30000 * waste_emmisionfactor;
+                                            break;
+                                        case "3":
+                                            carbonfootprint_amount += 90000 * waste_emmisionfactor;
+                                            break;
+                                    }
+                                    break;
+                                case "15":
+                                    switch (optionIndex) {
+                                        case "1":
+                                            carbonfootprint_amount += 171 * fuel_emmisionfactor;
+                                            break;
+                                        case "2":
+                                            carbonfootprint_amount += 514 * fuel_emmisionfactor;
+                                            break;
+                                        case "3":
+                                            carbonfootprint_amount += 857 * fuel_emmisionfactor;
+                                            break;
+                                        case "4":
+                                            carbonfootprint_amount += 1200 * fuel_emmisionfactor;
+                                            break;
+                                        case "5":
+                                            carbonfootprint_amount += 1714 * fuel_emmisionfactor;
+                                            break;
+                                    }
+                                    break;
+                            }
+                        }
+                        Log.d(TAG, "Carbon Footprint=" + carbonfootprint_amount);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
-
         });
+
+
 //        PieChart pieChart = view.findViewById(R.id.pieChart); // Use view.findViewById here
 //        ArrayList<PieEntry> visitors = new ArrayList<>();
 //        // Add visitors data

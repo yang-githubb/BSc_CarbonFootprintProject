@@ -83,6 +83,15 @@
     <string name="other">Other</string>
     <string name="_17_what_means_of_transport_do_you_use_the_most">17. What means of transport do you use the most?</string>
     <string name="submit">Submit</string>
+    <string name="blink">BLINK</string>
+    <string name="clockwise">ROTATE</string>
+    <string name="fade">FADE</string>
+    <string name="move">MOVE</string>
+    <string name="slide">SLIDE</string>
+    <string name="zoom">ZOOM</string>
+    <string name="stop_animation">STOP ANIMATION</string>
+    <string name="course_rating">Course Rating</string>
+    <string name="course_name">Course Name</string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="profile">Profile</string>
@@ -91,5 +100,8 @@
     <string name="_1kg"><![CDATA[<1kg]]></string>
     <string name="_1_01kg_5kg">1.01kg-5kg</string>
     <string name="_5kg"><![CDATA[>5kg]]></string>
+    <string name="youtube_videos">Youtube Videos</string>
+    <string name="image_view" />
+    <string name="Quotes" />
     >
 </resources>

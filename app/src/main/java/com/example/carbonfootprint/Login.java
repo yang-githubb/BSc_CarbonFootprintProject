@@ -66,7 +66,7 @@ public class Login extends AppCompatActivity {
                     String[] data = new String[2];
                     data[0] = username;
                     data[1] = password;
-                    PutData putData = new PutData("http://10.100.18.9/CarbonFootprintFYP/login.php", "POST", field, data);
+                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/login.php", "POST", field, data);
                     if (putData.startPut()) {
                         if (putData.onComplete()) {
                             progressBar.setVisibility(View.GONE);
