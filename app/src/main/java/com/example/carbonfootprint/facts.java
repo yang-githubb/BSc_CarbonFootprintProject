@@ -55,7 +55,7 @@ public class facts extends Fragment {
         youTubePlayerView.addYouTubePlayerListener(new AbstractYouTubePlayerListener() {
             @Override
             public void onReady(@NonNull YouTubePlayer youTubePlayer) {
-                String videoId = "txfIzLpR9Uc";
+                String videoId = "8q7_aV8eLUE";
                 youTubePlayer.cueVideo(videoId, 0);
             }
         });
@@ -81,7 +81,6 @@ public class facts extends Fragment {
                     int nextItemPosition = lastVisibleItemPosition + 1;
 
                     if (layoutManager != null) {
-                        // Create and configure your custom smooth scroller
                         SlowSmoothScroller smoothScroller = new SlowSmoothScroller(getContext());
                         if (lastVisibleItemPosition < adapter.getItemCount() - 1) {
                             smoothScroller.setTargetPosition(nextItemPosition);
@@ -92,7 +91,7 @@ public class facts extends Fragment {
                     }
                 }
                 // Post the next scroll action
-                scrollHandler.postDelayed(this, 50); // Adjust the delay as needed
+                scrollHandler.postDelayed(this, 50);
             }
         };
     }
@@ -100,7 +99,7 @@ public class facts extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        if (scrollHandler != null && scrollRunnable != null) {
+        if (scrollRunnable != null) {
             scrollHandler.removeCallbacks(scrollRunnable);
         }
     }
@@ -108,7 +107,7 @@ public class facts extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        if (scrollHandler != null && scrollRunnable != null) {
+        if (scrollRunnable != null) {
             scrollHandler.postDelayed(scrollRunnable, 2000);
         }
     }
