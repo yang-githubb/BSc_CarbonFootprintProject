@@ -32,6 +32,11 @@ android {
     buildFeatures {
         viewBinding = true
     }
+
+    packagingOptions {
+        exclude("META-INF/native-image/**")
+    }
+
 }
 
 dependencies {
@@ -43,6 +48,8 @@ dependencies {
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
     implementation("com.github.anastr:speedviewlib:1.6.1")
+    implementation("com.github.haifengl:smile-core:3.1.0")
+    implementation("org.apache.commons:commons-math3:3.6.1")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

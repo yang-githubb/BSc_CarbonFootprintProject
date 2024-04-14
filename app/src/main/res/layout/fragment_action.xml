@@ -5,12 +5,20 @@
     android:layout_height="match_parent"
     tools:context=".action">
 
-    <TextView
-        android:id="@+id/textView"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="430dp"
-        android:textSize="35sp"
-        android:gravity="center"
-        android:text="@string/action" />
+        android:layout_height="wrap_content"
+        android:fillViewport="true">
+
+        <TextView
+            android:id="@+id/textViewClusterInfo"
+            android:textIsSelectable="true"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp"
+            android:textSize="16sp"
+            android:scrollbars="vertical" />
+
+    </ScrollView>
 
 </FrameLayout>

@@ -47,16 +47,12 @@ public class profile extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ImageLinearGauge imageLinearGauge= (ImageLinearGauge) view.findViewById(R.id.speedView);
+        ImageLinearGauge imageLinearGauge= view.findViewById(R.id.speedView);
         imageLinearGauge.speedTo(50,4000);
         imageLinearGauge.setWithTremble(false);
 
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(() -> {
-            String[] field = new String[1];
-            field[0] = "userId";
-            String[] data = new String[1];
-            data[0] = "123";
             FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/carbCalc.php?userId=1");
             if (fetchData.startFetch()) {
                 if (fetchData.onComplete()) {
