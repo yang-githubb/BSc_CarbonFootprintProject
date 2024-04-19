@@ -65,6 +65,29 @@ class DataBase
         } else return false;
     }
 
+   function carbCalc($table, $userId) {
+        $userId = $this->prepareData($userId);
+        $this->sql = "SELECT * FROM " . $table . " WHERE user_id = '1' AND question_id IN (3, 6, 15)";
+        $result = mysqli_query($this->connect, $this->sql);
+        
+        $rows = array();
+        while($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        return $rows;
+    }
+
+    function clusterCalc($table) {
+        $this->sql = "SELECT * FROM " . $table;
+        $result = mysqli_query($this->connect, $this->sql);
+        
+        $rows = array();
+        while($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        return $rows;
+    }
+
 }
 
 ?>
