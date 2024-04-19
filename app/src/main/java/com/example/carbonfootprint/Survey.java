@@ -2,25 +2,16 @@ package com.example.carbonfootprint;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.RadioGroup;
-import android.widget.Toast;
-
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import com.vishnusivadas.advanced_httpurlconnection.PutData;
-
 public class Survey extends AppCompatActivity {
-
-    private static final String TAG = Survey.class.getSimpleName();
 
     private final int[] radioGroupIDs = new int[]{
             R.id.question1RadioGroup,
@@ -59,7 +50,21 @@ public class Survey extends AppCompatActivity {
 
         Button submitButton = findViewById(R.id.submit_button);
         submitButton.setOnClickListener(v -> insertAnswersIntoDatabase(1,selectedAnswers));
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+
+        toolbar.setNavigationOnClickListener(v -> {
+            Intent intent = new Intent(getApplicationContext(), Login.class);
+            startActivity(intent);
+            finish();
+        });
     }
+
 
     private void setupListeners() {
         for (int i = 0; i < radioGroupIDs.length; i++) {

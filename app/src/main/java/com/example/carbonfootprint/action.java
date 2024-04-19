@@ -3,13 +3,11 @@ package com.example.carbonfootprint;
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import com.vishnusivadas.advanced_httpurlconnection.FetchData;
-import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.util.ArrayList;
@@ -19,9 +17,9 @@ import java.util.Map;
 import smile.clustering.KMeans;
 
 public class action extends Fragment {
-
-    private static final String TAG = action.class.getSimpleName();
     private TextView textView;
+
+    int userClusterId;
 
     public action() {
         // Required empty public constructor
@@ -56,11 +54,10 @@ public class action extends Fragment {
                         int answer = obj.getInt("option_index");
 
                         List<Integer> answers = userData.computeIfAbsent(userId, k -> new ArrayList<>());
-                        // Ensure the list is long enough to handle the current questionId index
                         while (answers.size() <= questionId) {
-                            answers.add(0);  // Initialize with a default value of 0
+                            answers.add(0);
                         }
-                        answers.set(questionId, answer);  // Set the answer at the appropriate index
+                        answers.set(questionId, answer);
                     }
 
                     List<Integer> keys = new ArrayList<>(userData.keySet());
@@ -71,9 +68,6 @@ public class action extends Fragment {
                         dataMatrix[i] = answers.stream().mapToDouble(Integer::doubleValue).toArray();
                     }
 
-                    PearsonsCorrelation correlation = new PearsonsCorrelation();
-                    double[][] correlationMatrix = correlation.computeCorrelationMatrix(dataMatrix).getData();
-
                     KMeans kmeans = KMeans.fit(dataMatrix, 3);
                     int[] labels = kmeans.y;
 
@@ -83,11 +77,19 @@ public class action extends Fragment {
                     }
 
                     for (Map.Entry<Integer, Integer> entry : userClusterMap.entrySet()) {
-                        Log.d(TAG, "User ID: " + entry.getKey() + " belongs to Cluster: " + entry.getValue());
+                        if (entry.getKey() == 1) {
+                            userClusterId = entry.getValue();
+                        }
                     }
 
+                    ClusterAnalysis analysis = new ClusterAnalysis(kmeans.centroids,userClusterId);
+                    Map<String,String> userCategoryAction = analysis.compareWithMaxValues();
 
-                    displayClusterCharacteristics(kmeans.centroids);
+                    StringBuilder output = new StringBuilder();
+                    userCategoryAction.forEach((question, category) -> {
+                        output.append(question).append(": High\n");
+                    });
+
 
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -95,40 +97,4 @@ public class action extends Fragment {
             }
         }
     }
-
-    String[] questionDescriptions = {
-            "Number of people in household",
-            "Primary source of energy",
-            "Monthly energy consumption (approx.)",
-            "Daily bathing method",
-            "Laundry frequency",
-            "Weekly waste production (kg)",
-            "Grocery shopping location",
-            "Weekly grocery spending",
-            "Weekly restaurant visits",
-            "Leftover food packing habit in restaurants",
-            "Handling of unfinished prepared food",
-            "Tendency to finish food on plate",
-            "Frequency of bringing own bag for shopping",
-            "Ownership of Hybrid/Electric vehicle",
-            "Weekly fuel consumption",
-            "Travel mode to school",
-            "Most used means of transport"
-    };
-
-    public void displayClusterCharacteristics(double[][] centroids) {
-        StringBuilder info = new StringBuilder();
-        for (int i = 0; i < centroids.length; i++) {
-            info.append("Cluster ").append(i + 1).append(" characteristics:\n");
-            for (int j = 0; j < centroids[i].length && j < questionDescriptions.length; j++) {
-                info.append(questionDescriptions[j])
-                        .append(": ")
-                        .append(String.format("%.2f", centroids[i][j]))
-                        .append("\n");
-            }
-            info.append("\n");
-        }
-        textView.setText(info);
-    }
-
 }

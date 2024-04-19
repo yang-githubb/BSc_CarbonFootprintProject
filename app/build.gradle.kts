@@ -42,7 +42,7 @@ android {
 dependencies {
 
     implementation("com.github.VishnuSivadasVS:Advanced-HttpURLConnection:1.2")
-    implementation("com.google.android.material:material:1.1.0")
+    implementation("com.google.android.material:material:1.13.0-alpha01")
     implementation("com.github.PhilJay:MPAndroidChart:v3.1.0")
     implementation("org.json:json:20210307")
     implementation("com.google.android.exoplayer:exoplayer:2.19.1")
