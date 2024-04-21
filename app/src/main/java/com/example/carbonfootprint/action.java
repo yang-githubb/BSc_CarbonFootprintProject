@@ -1,8 +1,12 @@
 package com.example.carbonfootprint;
 
+import static android.content.ContentValues.TAG;
+
 import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -90,6 +94,7 @@ public class action extends Fragment {
                         output.append(question).append(": High\n");
                     });
 
+                    Log.d(TAG, String.valueOf(output));
 
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -1,4 +1,5 @@
 package com.example.carbonfootprint;
+
 import static java.lang.Math.round;
 
 import android.graphics.Color;
@@ -6,11 +7,13 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
+
 import android.os.Handler;
 import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+
 import com.github.anastr.speedviewlib.ImageLinearGauge;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
@@ -18,6 +21,7 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
 import com.github.mikephil.charting.utils.ColorTemplate;
 import com.vishnusivadas.advanced_httpurlconnection.FetchData;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -26,11 +30,10 @@ import java.util.ArrayList;
 
 public class profile extends Fragment {
 
-    // Parameters
-    double carbonfootprint_amount=0;
-    double electricity_amount=0;
-    double fuel_amount=0;
-    double waste_amount=0;
+    double carbonfootprint_amount = 0;
+    double electricity_amount = 0;
+    double fuel_amount = 0;
+    double waste_amount = 0;
 
 
     public profile() {
@@ -47,8 +50,8 @@ public class profile extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ImageLinearGauge imageLinearGauge= view.findViewById(R.id.speedView);
-        imageLinearGauge.speedTo(50,4000);
+        ImageLinearGauge imageLinearGauge = view.findViewById(R.id.speedView);
+        imageLinearGauge.speedTo(50, 4000);
         imageLinearGauge.setWithTremble(false);
 
         Handler handler = new Handler(Looper.getMainLooper());
@@ -140,8 +143,8 @@ public class profile extends Fragment {
                         PieChart pieChart = view.findViewById(R.id.pieChart);
                         ArrayList<PieEntry> visitors = new ArrayList<>();
                         visitors.add(new PieEntry(round(electricity_amount), "Electricity Amount"));
-                        visitors.add(new PieEntry(round(fuel_amount),"Fuel Amount"));
-                        visitors.add(new PieEntry(round(waste_amount),"Waste Amount"));
+                        visitors.add(new PieEntry(round(fuel_amount), "Fuel Amount"));
+                        visitors.add(new PieEntry(round(waste_amount), "Waste Amount"));
                         PieDataSet pieDataSet = new PieDataSet(visitors, "Total Emission Amount");
                         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
                         pieDataSet.setValueTextColor(Color.BLACK);
@@ -151,7 +154,6 @@ public class profile extends Fragment {
                         pieChart.getDescription().setEnabled(false);
                         pieChart.invalidate();
                         pieChart.setCenterText("Carbon Footprint");
-
                         pieChart.animate();
                     } catch (JSONException e) {
                         e.printStackTrace();

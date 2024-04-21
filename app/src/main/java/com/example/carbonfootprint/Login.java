@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,17 +16,20 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
+import com.vishnusivadas.advanced_httpurlconnection.FetchData;
 import com.vishnusivadas.advanced_httpurlconnection.PutData;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Login extends AppCompatActivity {
-    TextInputEditText textInputLayoutUsername,textInputLayoutPassword;
+    TextInputEditText textInputLayoutUsername, textInputLayoutPassword;
     Button buttonLogin;
     TextView textViewSignUp;
     ProgressBar progressBar;
     private static final String TAG = Survey.class.getSimpleName();
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +58,7 @@ public class Login extends AppCompatActivity {
             username = String.valueOf(textInputLayoutUsername.getText());
             password = String.valueOf(textInputLayoutPassword.getText());
 
-            if(!username.isEmpty() && !password.isEmpty()) {
+            if (!username.isEmpty() && !password.isEmpty()) {
                 progressBar.setVisibility(View.VISIBLE);
                 Handler handler = new Handler(Looper.getMainLooper());
                 handler.post(() -> {
@@ -72,20 +74,39 @@ public class Login extends AppCompatActivity {
                             progressBar.setVisibility(View.GONE);
                             String result = putData.getResult();
                             if (result.equals("Login Success")) {
-                                Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-                                Intent intent = new Intent(getApplicationContext(), Survey.class);
-                                startActivity(intent);
-                                finish();
-                            } else {
-                                Log.d(TAG, result);
-                                Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
+                                fetchUserId(username, MainPage.class);
+                            } else if (result.equals("Survey")) {
+                                fetchUserId(username, Survey.class);
+                            } else if (result.equals("Username or Password wrong")) {
+                                Snackbar.make(findViewById(R.id.buttonLogin), "Username or Password wrong", Snackbar.LENGTH_LONG).show();
                             }
                         }
                     }
                 });
             } else {
-                Toast.makeText(getApplicationContext(),"All fields are required!",Toast.LENGTH_SHORT).show();
+                Snackbar.make(findViewById(R.id.buttonLogin), "All fields are required!", Snackbar.LENGTH_LONG).show();
             }
         });
+    }
+
+    private void fetchUserId(String username, Class<?> activityClass) {
+        FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/get_userid.php?username=" + username);
+        if (fetchData.startFetch()) {
+            if (fetchData.onComplete()) {
+                String response = fetchData.getResult();
+                try {
+                    JSONObject jsonObject = new JSONObject(response);
+                    String userId = jsonObject.getString("userId");
+                    Intent intent = new Intent(getApplicationContext(), activityClass);
+                    intent.putExtra("USER_ID", userId);
+                    startActivity(intent);
+                    finish();
+                } catch (JSONException e) {
+                    Log.e(TAG, "Error parsing user data", e);
+                    progressBar.setVisibility(View.GONE);
+                    Snackbar.make(findViewById(R.id.buttonLogin), "Failed to handle user data", Snackbar.LENGTH_LONG).show();
+                }
+            }
+        }
     }
 }

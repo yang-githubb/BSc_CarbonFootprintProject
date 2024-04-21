@@ -1,9 +1,20 @@
 package com.example.carbonfootprint;
 
 import android.content.Intent;
+
+import com.google.android.material.snackbar.Snackbar;
+import com.vishnusivadas.advanced_httpurlconnection.PutData;
+
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
+import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.RadioGroup;
+import android.widget.ScrollView;
+
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -32,8 +43,7 @@ public class Survey extends AppCompatActivity {
             R.id.question16RadioGroup,
             R.id.question17RadioGroup
     };
-    private final int[] selectedAnswers = new int[radioGroupIDs.length]; // Assuming one answer per RadioGroup
-
+    private final int[] selectedAnswers = new int[radioGroupIDs.length];
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,11 +55,19 @@ public class Survey extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
         setupListeners();
+        String username = getIntent().getStringExtra("USER_ID");
 
         Button submitButton = findViewById(R.id.submit_button);
-        submitButton.setOnClickListener(v -> insertAnswersIntoDatabase(1,selectedAnswers));
+        submitButton.setOnClickListener(v -> {
+            if (areAllQuestionsAnswered()) {
+                insertAnswersIntoDatabase(username, selectedAnswers);
+            } else {
+                int firstUnansweredId = findFirstUnansweredQuestion();
+                scrollToUnansweredQuestion(firstUnansweredId);
+                Snackbar.make(findViewById(R.id.main), "Please answer all questions before submitting.", Snackbar.LENGTH_LONG).show();
+            }
+        });
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -63,8 +81,9 @@ public class Survey extends AppCompatActivity {
             startActivity(intent);
             finish();
         });
-    }
 
+        Snackbar.make(findViewById(R.id.main), "Welcome to the Survey! Please answer all questions.", Snackbar.LENGTH_LONG).show();
+    }
 
     private void setupListeners() {
         for (int i = 0; i < radioGroupIDs.length; i++) {
@@ -72,43 +91,83 @@ public class Survey extends AppCompatActivity {
             final int index = i;
             radioGroup.setOnCheckedChangeListener((group, checkedId) -> {
                 int radioButtonIndex = group.indexOfChild(findViewById(checkedId));
-                selectedAnswers[index] = radioButtonIndex;
+                if (radioButtonIndex != -1) {
+                    selectedAnswers[index] = radioButtonIndex + 1;
+                }
             });
         }
     }
 
-    void insertAnswersIntoDatabase(int userId, int[] selectedOptionIds) {
-//        for (int i = 0; i < selectedOptionIds.length; i++) {
-//            int questionId = i + 1;
-//            int optionId = selectedOptionIds[i];
-//
-//            Handler handler = new Handler(Looper.getMainLooper());
-//            handler.post(() -> {
-//                String[] field = new String[3];
-//                field[0] = "userId";
-//                field[1] = "questionId";
-//                field[2] = "optionId";
-//                String[] data = new String[3];
-//                data[0] = String.valueOf(userId);
-//                data[1] = String.valueOf(questionId);
-//                data[2] = String.valueOf(optionId);
-//                PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/user_answer.php", "POST", field, data);
-//                if (putData.startPut()) {
-//                    if (putData.onComplete()) {
-//                        String result = putData.getResult();
-//                        Log.d(TAG,result);
-//                        if (result.equals("Insert Success")) {
-//                            Log.d(TAG,result);
-//                            Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-//                        } else {
-//                            Toast.makeText(getApplicationContext(),result,Toast.LENGTH_SHORT).show();
-//                        }
-//                    }
-//                }
-//            });
-//        }
-        Intent intent = new Intent(getApplicationContext(), MainPage.class);
-        startActivity(intent);
-        finish();
+    void insertAnswersIntoDatabase(String userId, int[] selectedOptionIds) {
+        for (int i = 0; i < selectedOptionIds.length; i++) {
+            int questionId = i + 1;
+            int optionId = selectedOptionIds[i];
+
+            Handler handler = new Handler(Looper.getMainLooper());
+            handler.post(() -> {
+                String[] field = new String[3];
+                field[0] = "userId";
+                field[1] = "questionId";
+                field[2] = "optionId";
+                String[] data = new String[3];
+                data[0] = String.valueOf(userId);
+                data[1] = String.valueOf(questionId);
+                data[2] = String.valueOf(optionId);
+                PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/user_answer.php", "POST", field, data);
+                if (putData.startPut()) {
+                    if (putData.onComplete()) {
+                        String result = putData.getResult();
+                        Log.d("Error", result);
+                        if (result.equals("Insert Success")) {
+                            Snackbar.make(findViewById(R.id.main), result, Snackbar.LENGTH_LONG).show();
+                            Intent intent = new Intent(getApplicationContext(), MainPage.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            Snackbar.make(findViewById(R.id.main), "Error: Please try again!", Snackbar.LENGTH_LONG).show();
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    private boolean areAllQuestionsAnswered() {
+        for (int i = 0; i < radioGroupIDs.length; i++) {
+            RadioGroup radioGroup = findViewById(radioGroupIDs[i]);
+            if (radioGroup.getCheckedRadioButtonId() == -1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private int findFirstUnansweredQuestion() {
+        for (int radioGroupId : radioGroupIDs) {
+            RadioGroup radioGroup = findViewById(radioGroupId);
+            if (radioGroup != null) {
+                int checkedId = radioGroup.getCheckedRadioButtonId();
+                if (checkedId == -1) {
+                    View parentView = (View) radioGroup.getParent();
+                    if (parentView instanceof LinearLayout) {
+                        View cardViewParent = (View) parentView.getParent();
+                        if (cardViewParent != null) {
+                            return cardViewParent.getId();
+                        }
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+
+    private void scrollToUnansweredQuestion(int cardViewId) {
+        final ScrollView scrollView = findViewById(R.id.scrollView);
+        final View targetView = findViewById(cardViewId);
+        scrollView.post(() -> {
+            int y = targetView.getTop() - 20;
+            scrollView.smoothScrollTo(0, y);
+            targetView.requestFocus();
+        });
     }
 }
