@@ -35,7 +35,7 @@ The app uses MySQL for user data and survey responses. The database schema is pr
 
 ## Contributing
 
-####Author: Ooi Yeuan Yang
+### Author: Ooi Yeuan Yang
 Contributions to improve the app and expand its functionality are more than welcome. Please submit pull requests for any enhancements.
 
 ## Acknowledgments
