@@ -1,7 +1,5 @@
 package com.example.carbonfootprint;
 
-import static java.lang.Math.round;
-
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -13,8 +11,8 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
-import com.github.anastr.speedviewlib.ImageLinearGauge;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
@@ -30,10 +28,12 @@ import java.util.ArrayList;
 
 public class profile extends Fragment {
 
-    double carbonfootprint_amount = 0;
+    public double carbonfootprint_amount = 0;
     double electricity_amount = 0;
     double fuel_amount = 0;
     double waste_amount = 0;
+
+    public static double total_amount;
 
 
     public profile() {
@@ -50,13 +50,14 @@ public class profile extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ImageLinearGauge imageLinearGauge = view.findViewById(R.id.speedView);
-        imageLinearGauge.speedTo(50, 4000);
-        imageLinearGauge.setWithTremble(false);
 
+        String userid = Login.user_Id;
+        String username = Login.username;
+        TextView usernametextview = view.findViewById(R.id.textUsername);
+        usernametextview.setText(username);
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(() -> {
-            FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/carbCalc.php?userId=1");
+            FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/carbCalc.php?userId=" + userid);
             if (fetchData.startFetch()) {
                 if (fetchData.onComplete()) {
                     String result = fetchData.getResult();
@@ -140,11 +141,24 @@ public class profile extends Fragment {
                                     break;
                             }
                         }
+                        total_amount = carbonfootprint_amount / 1000;
+                        double carbonfootprint_val = carbonfootprint_amount / 1000;
+                        float carbon_footprint_rounded = (float) (Math.round(carbonfootprint_val * 100.0) / 100.0);
+
+                        double elec_val = electricity_amount / 1000;
+                        float electricity_amount_rounded = (float) (Math.round(elec_val * 100.0) / 100.0);
+
+                        double fuel_val = fuel_amount / 1000;
+                        float fuel_amount_rounded = (float) (Math.round(fuel_val * 100.0) / 100.0);
+
+                        double waste_value = waste_amount / 1000;
+                        float waste_rounded = (float) (Math.round(waste_value * 100.0) / 100.0);
+
                         PieChart pieChart = view.findViewById(R.id.pieChart);
                         ArrayList<PieEntry> visitors = new ArrayList<>();
-                        visitors.add(new PieEntry(round(electricity_amount), "Electricity Amount"));
-                        visitors.add(new PieEntry(round(fuel_amount), "Fuel Amount"));
-                        visitors.add(new PieEntry(round(waste_amount), "Waste Amount"));
+                        visitors.add(new PieEntry(electricity_amount_rounded, "Electricity Amount"));
+                        visitors.add(new PieEntry(fuel_amount_rounded, "Fuel Amount"));
+                        visitors.add(new PieEntry(waste_rounded, "Waste Amount"));
                         PieDataSet pieDataSet = new PieDataSet(visitors, "Total Emission Amount");
                         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
                         pieDataSet.setValueTextColor(Color.BLACK);
@@ -153,8 +167,12 @@ public class profile extends Fragment {
                         pieChart.setData(pieData);
                         pieChart.getDescription().setEnabled(false);
                         pieChart.invalidate();
-                        pieChart.setCenterText("Carbon Footprint");
+                        pieChart.setCenterText("Carbon Footprint\n(tCO2e)");
                         pieChart.animate();
+
+                        TextView totalcarbon = view.findViewById(R.id.total_text);
+                        String text = "Your carbon footprint: " + carbon_footprint_rounded + "tCO2e.";
+                        totalcarbon.setText(text);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

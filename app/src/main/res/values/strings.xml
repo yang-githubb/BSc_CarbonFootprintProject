@@ -107,4 +107,7 @@
     <string name="survey">Survey</string>
     <string name="question_1">Question 1</string>
     <string name="carbon_footprint_survey">Carbon Footprint Survey</string>
+    <string name="about">About</string>
+    <string name="user_information">User Information</string>
+    <string name="how_do_you_compare_naverage_of_malaysian_has_10_158tco2e">How do you compare?\nAverage of Malaysian has 10.158tCO2e</string>
 </resources>

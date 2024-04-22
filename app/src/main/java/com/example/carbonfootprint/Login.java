@@ -31,6 +31,10 @@ public class Login extends AppCompatActivity {
     ProgressBar progressBar;
     private static final String TAG = Survey.class.getSimpleName();
 
+    public static String username;
+    public static String password;
+    public static String user_Id;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +58,6 @@ public class Login extends AppCompatActivity {
         });
 
         buttonLogin.setOnClickListener(v -> {
-            String username, password;
             username = String.valueOf(textInputLayoutUsername.getText());
             password = String.valueOf(textInputLayoutPassword.getText());
 
@@ -99,6 +102,7 @@ public class Login extends AppCompatActivity {
                     String userId = jsonObject.getString("userId");
                     Intent intent = new Intent(getApplicationContext(), activityClass);
                     intent.putExtra("USER_ID", userId);
+                    userId =user_Id;
                     startActivity(intent);
                     finish();
                 } catch (JSONException e) {

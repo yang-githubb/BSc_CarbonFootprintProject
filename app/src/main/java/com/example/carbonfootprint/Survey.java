@@ -8,7 +8,6 @@ import com.vishnusivadas.advanced_httpurlconnection.PutData;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -117,7 +116,6 @@ public class Survey extends AppCompatActivity {
                 if (putData.startPut()) {
                     if (putData.onComplete()) {
                         String result = putData.getResult();
-                        Log.d("Error", result);
                         if (result.equals("Insert Success")) {
                             Snackbar.make(findViewById(R.id.main), result, Snackbar.LENGTH_LONG).show();
                             Intent intent = new Intent(getApplicationContext(), MainPage.class);

@@ -1,10 +1,18 @@
 package com.example.carbonfootprint;
+
+import static java.lang.Math.round;
+
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
 import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,11 +20,15 @@ import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.TextView;
+
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.YouTubePlayer;
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.listeners.AbstractYouTubePlayerListener;
 import com.pierfrancescosoffritti.androidyoutubeplayer.core.player.views.YouTubePlayerView;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -30,7 +42,11 @@ public class facts extends Fragment {
     private Runnable scrollRunnable;
     private LinearLayoutManager layoutManager;
     private TextAdapter adapter;
-
+    private List<String> videoIds = Arrays.asList(
+            "J_iDcKDAwbA", "Dwkh46MZuIc", "bYb7YLsXvzg", "a9yO-K8mwL0",
+            "Mvp97__BP84", "rByHiqc0K9k", "sTvqIijqvTg"
+    );
+    private static final String ARG_USER_ID = "USER_ID";
 
     public facts() {
         // Required empty public constructor
@@ -46,7 +62,7 @@ public class facts extends Fragment {
 
         Context context = requireContext();
 
-        Animation animation = AnimationUtils.loadAnimation(context, R.anim.fade_anim);
+        Animation animation = AnimationUtils.loadAnimation(context, R.anim.blink_anim);
         imageView.startAnimation(animation);
 
         YouTubePlayerView youTubePlayerView = view.findViewById(R.id.youtube_player_view);
@@ -55,19 +71,30 @@ public class facts extends Fragment {
         youTubePlayerView.addYouTubePlayerListener(new AbstractYouTubePlayerListener() {
             @Override
             public void onReady(@NonNull YouTubePlayer youTubePlayer) {
-                String videoId = "8q7_aV8eLUE";
-                youTubePlayer.cueVideo(videoId, 0);
+                int randomIndex = new Random().nextInt(videoIds.size());
+                String randomVideoId = videoIds.get(randomIndex);
+                youTubePlayer.cueVideo(randomVideoId, 0);
             }
         });
 
         RecyclerView recyclerView = view.findViewById(R.id.textListRecyclerView);
         layoutManager = new LinearLayoutManager(getContext());
         recyclerView.setLayoutManager(layoutManager);
+
         List<String> texts = getDummyTexts();
         adapter = new TextAdapter(texts);
         recyclerView.setAdapter(adapter);
 
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation());
+        Drawable dividerDrawable = ContextCompat.getDrawable(getContext(), R.drawable.divider);
+        dividerItemDecoration.setDrawable(dividerDrawable);
+        recyclerView.addItemDecoration(dividerItemDecoration);
         initializeAutoScroll();
+
+        TextView textView = view.findViewById(R.id.textViewRight);
+        long equivalent_tree = round((profile.total_amount) * 6);
+        String result = "You have cut down " + equivalent_tree + " trees in this year!";
+        textView.setText(result);
 
         return view;
     }
@@ -90,7 +117,6 @@ public class facts extends Fragment {
                         layoutManager.startSmoothScroll(smoothScroller);
                     }
                 }
-                // Post the next scroll action
                 scrollHandler.postDelayed(this, 50);
             }
         };

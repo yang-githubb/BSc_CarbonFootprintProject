@@ -3,6 +3,7 @@ package com.example.carbonfootprint;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainPage extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
@@ -26,6 +28,7 @@ public class MainPage extends AppCompatActivity implements BottomNavigationView.
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Carbon Footprint FYP");
@@ -34,6 +37,7 @@ public class MainPage extends AppCompatActivity implements BottomNavigationView.
         bottomNavigationView.setOnNavigationItemSelectedListener(this);
         loadFragment(new profile());
     }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Fragment fragment = null;
