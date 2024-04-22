@@ -34,35 +34,40 @@ class DataBase
         return mysqli_real_escape_string($this->connect, stripslashes(htmlspecialchars($data)));
     }
 
-    function logIn($table, $username, $password)
-    {
+    function logIn($table, $username, $password) {
         $username = $this->prepareData($username);
-        $password = $this->prepareData($password);
-        $this->sql = "select * from " . $table . " where username = '" . $username . "'";
-        $result = mysqli_query($this->connect, $this->sql);
-        $row = mysqli_fetch_assoc($result);
-        if (mysqli_num_rows($result) != 0) {
+        $stmt = $this->connect->prepare("SELECT * FROM $table WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+    
+        if ($row) {
             $dbusername = $row['username'];
             $dbpassword = $row['password'];
-            if ($dbusername == $username && password_verify($password, $dbpassword)) {
-                $login = true;
-            } else $login = false;
-        } else $login = false;
-
-        return $login;
+            if ($dbusername === $username && password_verify($password, $dbpassword)) {
+                $stmt_answers = $this->connect->prepare("SELECT * FROM answers WHERE user_id = ?");
+                $stmt_answers->bind_param("s", $username);
+                $stmt_answers->execute();
+                $result_answers = $stmt_answers->get_result();
+                if ($result_answers->num_rows > 0) {
+                    return "Login Success";
+                } else {
+                    return "Survey";
+                }
+            } else {
+                return "Username or Password wrong";
+            }
+        } else {
+            return "Username or Password wrong";
+        }
     }
 
-    function signUp($table, $email, $username, $password)
-    {
-        $username = $this->prepareData($username);
-        $password = $this->prepareData($password);
-        $email = $this->prepareData($email);
-        $password = password_hash($password, PASSWORD_DEFAULT);
-        $this->sql =
-            "INSERT INTO " . $table . " (email, username, password) VALUES ('" . $email . "','" . $username . "','" . $password . "')";
-        if (mysqli_query($this->connect, $this->sql)) {
-            return true;
-        } else return false;
+    function signUp($table, $email, $username, $password) {
+        $stmt = $this->connect->prepare("INSERT INTO $table (email, username, password) VALUES (?, ?, ?)");
+        $hashed_password = password_hash($password, PASSWORD_DEFAULT);
+        $stmt->bind_param("sss", $email, $username, $hashed_password);
+        return $stmt->execute();
     }
 
    function carbCalc($table, $userId) {
@@ -88,6 +93,23 @@ class DataBase
         return $rows;
     }
 
-}
+    function insertAns($table, $userId, $questionId, $optionIndex) {
+            $stmt = $this->connect->prepare("INSERT INTO $table (user_id, question_id, option_index) VALUES (?, ?, ?)");
+            $stmt->bind_param("iii", $userId, $questionId, $optionIndex);
+            return $stmt->execute();
+    }
 
-?>
+    function getUserIdByUsername($username) {
+        $stmt = $this->connect->prepare("SELECT id FROM users WHERE username = ?");
+        $stmt->bind_param("s", $username);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($result->num_rows > 0) {
+            $row = $result->fetch_assoc();
+            return $row['id'];
+        } else {
+            return null; 
+        }
+    }
+    
+}?>
