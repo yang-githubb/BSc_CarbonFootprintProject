@@ -46,9 +46,10 @@ class DataBase
             $dbusername = $row['username'];
             $dbpassword = $row['password'];
             if ($dbusername === $username && password_verify($password, $dbpassword)) {
+                $userId = $this->getUserIdByUsername($username);
                 $stmt_answers = $this->connect->prepare("SELECT * FROM answers WHERE user_id = ?");
-                $stmt_answers->bind_param("s", $username);
-                $stmt_answers->execute();
+                $stmt_answers->bind_param("s", $userId);
+                $stmt_answers->execute();               
                 $result_answers = $stmt_answers->get_result();
                 if ($result_answers->num_rows > 0) {
                     return "Login Success";
