@@ -1,5 +1,6 @@
 package com.example.carbonfootprint;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -66,12 +67,15 @@ public class MainPage extends AppCompatActivity implements BottomNavigationView.
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_settings) {
-            // Handle action for settings
-            return true;
+        if (id == R.id.action_redoSurvey) {
+            Intent intent = new Intent(MainPage.this, Survey.class);
+            startActivity(intent);
         } else if (id == R.id.action_about) {
-            // Handle action for about
-            return true;
+            Intent intent = new Intent(MainPage.this, AboutActivity.class);
+            startActivity(intent);
+        } else if (id == R.id.action_logout) {
+            Intent intent = new Intent(MainPage.this, Login.class);
+            startActivity(intent);
         }
 
         return super.onOptionsItemSelected(item);

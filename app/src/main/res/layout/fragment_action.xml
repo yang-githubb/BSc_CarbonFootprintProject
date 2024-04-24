@@ -10,14 +10,15 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="564dp"
+        android:layout_height="match_parent"
         android:layout_marginTop="10dp"
         android:orientation="vertical"
         android:padding="15dp">
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:layout_marginTop="10dp"
             app:cardCornerRadius="10dp">
 
@@ -29,18 +30,17 @@
 
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="386dp"
-                    android:layout_marginStart="10dp"
-                    android:layout_marginEnd="10dp">
+                    android:layout_height="match_parent">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_alignParentStart="true"
+                        android:layout_marginStart="4dp"
                         android:fontFamily="@font/poppinsmedium"
-                        android:text="Analysis"
+                        android:text="@string/analysis"
                         android:textColor="@color/black"
-                        android:textSize="150sp"
+                        android:textSize="25sp"
                         android:textStyle="bold" />
 
                     <TextView
@@ -53,6 +53,49 @@
                         android:textColor="@color/black"
                         android:textSize="15sp"
                         android:textStyle="bold" />
+                </RelativeLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/ActionCardView"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="10dp"
+            app:cardCornerRadius="10dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="15dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <TextView
+                        android:id="@+id/recommendAction"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginStart="4dp"
+                        android:fontFamily="@font/poppinsmedium"
+                        android:text="@string/recommended_action"
+                        android:textColor="@color/black"
+                        android:textSize="25sp"
+                        android:textStyle="bold" />
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvHorizontalCards"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_below="@id/recommendAction"
+                        android:layout_marginTop="10dp"
+                        android:orientation="horizontal"
+                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                        android:scrollbars="horizontal" />
                 </RelativeLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

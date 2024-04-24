@@ -110,4 +110,11 @@
     <string name="about">About</string>
     <string name="user_information">User Information</string>
     <string name="how_do_you_compare_naverage_of_malaysian_has_10_158tco2e">How do you compare?\nAverage of Malaysian has 10.158tCO2e</string>
+    <string name="_6_how_much_waste_do_you_throw_per_week_in_kg">6. How much waste do you throw per week? (In kg)</string>
+    <string name="analysis">Analysis</string>
+    <string name="recommended_action">Recommended Action</string>
+    <string name="title">Title</string>
+    <string name="description">Description</string>
+    <string name="re_do_survey">Re-do Survey</string>
+    <string name="log_out">Log out</string>
 </resources>

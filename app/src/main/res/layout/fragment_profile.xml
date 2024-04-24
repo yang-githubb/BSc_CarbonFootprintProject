@@ -40,7 +40,7 @@ xmlns:app="http://schemas.android.com/apk/res-auto"
 
             <com.google.android.material.imageview.ShapeableImageView
                 android:layout_width="108dp"
-                android:layout_height="115dp"
+                android:layout_height="77dp"
                 android:layout_gravity="center"
                 android:src="@drawable/user" />
 

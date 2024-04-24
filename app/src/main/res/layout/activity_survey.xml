@@ -322,7 +322,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginBottom="8dp"
-                            android:text="@string/_6_how_do_you_dry_clothes_after_washing_them"
+                            android:text="@string/_6_how_much_waste_do_you_throw_per_week_in_kg"
                             android:textAppearance="?attr/textAppearanceTitleMedium" />
 
                         <RadioGroup

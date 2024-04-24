@@ -102,7 +102,7 @@ public class Login extends AppCompatActivity {
                     String userId = jsonObject.getString("userId");
                     Intent intent = new Intent(getApplicationContext(), activityClass);
                     intent.putExtra("USER_ID", userId);
-                    userId =user_Id;
+                    user_Id=userId;
                     startActivity(intent);
                     finish();
                 } catch (JSONException e) {
