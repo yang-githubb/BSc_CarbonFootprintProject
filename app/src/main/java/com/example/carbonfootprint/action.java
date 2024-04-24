@@ -1,12 +1,9 @@
 package com.example.carbonfootprint;
 
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -50,16 +47,9 @@ public class action extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.rvHorizontalCards);
         layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
         recyclerView.setLayoutManager(layoutManager);
-
         List<DataItem> texts = getActions();
-
         CustomAdapter adapter = new CustomAdapter(texts);
         recyclerView.setAdapter(adapter);
-
-        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation());
-        Drawable dividerDrawable = ContextCompat.getDrawable(getContext(), R.drawable.divider);
-        dividerItemDecoration.setDrawable(dividerDrawable);
-        recyclerView.addItemDecoration(dividerItemDecoration);
         textView = view.findViewById(R.id.textViewClusterInfo);
 
         fetchDataAndCluster();
@@ -142,19 +132,57 @@ public class action extends Fragment {
     private List<DataItem> getActions() {
         FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/getAction.php");
         List<DataItem> recommendAction = new ArrayList<>();
+//        Map<String, List<String>> categorizedActions = new HashMap<>();
+
         if (fetchData.startFetch()) {
             if (fetchData.onComplete()) {
                 String result = fetchData.getResult();
+
                 try {
                     JSONArray jsonArray = new JSONArray(result);
+                    Map<String, TextVectorization> categoryVectorizers = new HashMap<>();
+                    Map<String, KMeans> categoryModels = new HashMap<>();
 
-                    for (int i = 0; i < 5; i++) {
+                    for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject obj = jsonArray.getJSONObject(i);
                         String action_name = obj.getString("action_name");
                         String action_description = obj.getString("action_description");
+                        String action_category = obj.getString("action_category").toLowerCase();
 
                         recommendAction.add(new DataItem(action_name, action_description));
+//                        categorizedActions.computeIfAbsent(action_category, k -> new ArrayList<>()).add(action_name);
                     }
+
+//                    for (Map.Entry<String, List<String>> entry : categorizedActions.entrySet()) {
+//                        List<String[]> docs = entry.getValue().stream().map(action -> action.split("\\s+")).collect(Collectors.toList());
+//                        TextVectorization vectorizer = new TextVectorization(docs);
+//                        double[][] dataMatrix = vectorizer.transform();
+//
+//                        KMeans kmeans = KMeans.fit(dataMatrix, 5);
+//                        categoryVectorizers.put(entry.getKey(), vectorizer);
+//                        categoryModels.put(entry.getKey(), kmeans);
+//                    }
+//
+//                    String input = "How many fuel consumption on weekly basis";
+//                    String[] inputArray = {input};
+//                    List inputList = Arrays.asList(new String[][]{inputArray});
+//                    List<String> transportActions = categorizedActions.get("transportation");
+//                    if (transportActions != null && categoryVectorizers.containsKey("transportation") && categoryModels.containsKey("transportation")) {
+//                        TextVectorization transportVectorizer = categoryVectorizers.get("transportation");
+//                        KMeans transportKMeans = categoryModels.get("transportation");
+//
+//                        assert transportVectorizer != null;
+//                        double[][] inputVector = transportVectorizer.transform1(inputList);
+//                        if (inputVector.length > 0) {
+//                            double[] queryVector = inputVector[0];
+//                            int predictedCluster = transportKMeans.predict(queryVector);
+//                            Log.d("YVYU", "Predicted cluster for input: " + predictedCluster);
+//                        } else {
+//                            Log.d("YVYU", "ioob");
+//                        }
+//                    }
+
+
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }

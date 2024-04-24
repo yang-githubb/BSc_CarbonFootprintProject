@@ -76,6 +76,7 @@ public class Login extends AppCompatActivity {
                         if (putData.onComplete()) {
                             progressBar.setVisibility(View.GONE);
                             String result = putData.getResult();
+                            Log.d("df",result);
                             if (result.equals("Login Success")) {
                                 fetchUserId(username, MainPage.class);
                             } else if (result.equals("Survey")) {

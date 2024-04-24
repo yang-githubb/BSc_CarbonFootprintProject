@@ -11,6 +11,6 @@ public class SlowSmoothScroller extends LinearSmoothScroller {
 
     @Override
     protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
-        return 5000f / displayMetrics.densityDpi;
+        return 8000f / displayMetrics.densityDpi;
     }
 }

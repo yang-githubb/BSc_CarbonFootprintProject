@@ -82,7 +82,7 @@ public class facts extends Fragment {
         recyclerView.setLayoutManager(layoutManager);
 
         List<String> texts = getDummyTexts();
-        adapter = new TextAdapter(texts);
+        adapter = new TextAdapter(context,texts);
         recyclerView.setAdapter(adapter);
 
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recyclerView.getContext(), layoutManager.getOrientation());

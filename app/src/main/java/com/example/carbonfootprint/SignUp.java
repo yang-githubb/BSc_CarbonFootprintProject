@@ -96,7 +96,7 @@ public class SignUp extends AppCompatActivity {
                                 progressBar.setVisibility(View.GONE);
                                 String result = putData.getResult();
                                 if (result.equals("Sign Up Success")) {
-                                    Snackbar.make(findViewById(R.id.main), result, Snackbar.LENGTH_LONG).show();
+                                    Snackbar.make(findViewById(R.id.main), "Account created successfully!", Snackbar.LENGTH_LONG).show();
                                     Intent intent = new Intent(getApplicationContext(), Login.class);
                                     startActivity(intent);
                                     finish();

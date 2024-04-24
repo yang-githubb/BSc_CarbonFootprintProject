@@ -5,7 +5,8 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#c5ebcf"
+    android:background="#d3d3d3"
+    android:theme="@style/AppTheme"
     tools:context=".MainPage">
 
     <RelativeLayout
@@ -17,7 +18,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="@color/cardview_dark_background"
             app:titleTextColor="@android:color/white"
             android:elevation="4dp"/>
 

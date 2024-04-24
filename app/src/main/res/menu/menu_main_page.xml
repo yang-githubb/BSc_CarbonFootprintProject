@@ -6,6 +6,7 @@
         android:title="@string/re_do_survey"
         android:icon="@drawable/ic_survey"
     android:orderInCategory="100"
+
         app:showAsAction="withText"/>
 
     <item

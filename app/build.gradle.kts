@@ -48,6 +48,7 @@ dependencies {
     implementation("com.pierfrancescosoffritti.androidyoutubeplayer:core:12.1.0")
     implementation("com.github.anastr:speedviewlib:1.6.1")
     implementation("com.github.haifengl:smile-core:3.1.0")
+    implementation("com.github.haifengl:smile-nlp:3.1.0")
     implementation("org.apache.commons:commons-math3:3.6.1")
     implementation("com.airbnb.android:lottie:6.4.0")
     implementation(libs.appcompat)

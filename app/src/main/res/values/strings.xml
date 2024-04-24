@@ -56,7 +56,7 @@
     <string name="rm400_rm600">RM400-RM600</string>
     <string name="rm200_rm399">RM200-RM399</string>
     <string name="more_than_rm600">More than RM600</string>
-    <string name="_9_how_frequently_do_you_eat_at_restaurnt_on_weekly_basis">9. How frequently do you eat at restaurnt on weekly basis?</string>
+    <string name="_9_how_frequently_do_you_eat_at_restaurnt_on_weekly_basis">9. How frequently do you eat at restaurant on weekly basis?</string>
     <string name="never">Never</string>
     <string name="rarely">Rarely</string>
     <string name="often">Often</string>
@@ -117,4 +117,10 @@
     <string name="description">Description</string>
     <string name="re_do_survey">Re-do Survey</string>
     <string name="log_out">Log out</string>
+    <string name="recommendation">Recommendation</string>
+    <string name="_7_what_is_your_preferred_place_to_shop_for_groceries">7. What is your preferred place to shop for groceries?</string>
+    <string name="how_do_you_compare">How do you compare?</string>
+    <string name="average_carbon_footprint_10_158tco2e">Average carbon footprint: 10.158tCO2e</string>
+    <string name="malaysia_average_carbon_footprint_10_158tco2e">Malaysia average carbon footprint: 10.158tCO2e</string>
+    <string name="forgot_password">Forgot password?</string>
 </resources>

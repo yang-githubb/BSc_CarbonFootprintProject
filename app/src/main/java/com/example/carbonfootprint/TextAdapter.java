@@ -1,14 +1,17 @@
 package com.example.carbonfootprint;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class TextAdapter extends RecyclerView.Adapter<TextAdapter.TextViewHolder> {
 
     private final List<String> texts;
+    private final Context context;
 
     public static class TextViewHolder extends RecyclerView.ViewHolder {
         public TextView textView;
@@ -18,7 +21,8 @@ public class TextAdapter extends RecyclerView.Adapter<TextAdapter.TextViewHolder
         }
     }
 
-    public TextAdapter(List<String> texts) {
+    public TextAdapter(Context context, List<String> texts) {
+        this.context = context;
         this.texts = texts;
     }
 
@@ -34,7 +38,14 @@ public class TextAdapter extends RecyclerView.Adapter<TextAdapter.TextViewHolder
     public void onBindViewHolder(TextViewHolder holder, int position) {
         int actualPosition = position % texts.size();
         holder.textView.setText(texts.get(actualPosition));
+
+        if (position % 2 == 0) {
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.colorItemBackground2));
+        } else {
+            holder.itemView.setBackgroundColor(ContextCompat.getColor(context, R.color.white));
+        }
     }
+
 
     @Override
     public int getItemCount() {

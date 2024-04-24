@@ -13,7 +13,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
+import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
@@ -54,7 +56,8 @@ public class profile extends Fragment {
         String userid = Login.user_Id;
         String username = Login.username;
         TextView usernametextview = view.findViewById(R.id.textUsername);
-        usernametextview.setText(username);
+        String greets = "Hi! " + username;
+        usernametextview.setText(greets);
         Handler handler = new Handler(Looper.getMainLooper());
         handler.post(() -> {
             FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/carbCalc.php?userId=" + userid);
@@ -147,7 +150,6 @@ public class profile extends Fragment {
 
                         double elec_val = electricity_amount / 1000;
                         float electricity_amount_rounded = (float) (Math.round(elec_val * 100.0) / 100.0);
-
                         double fuel_val = fuel_amount / 1000;
                         float fuel_amount_rounded = (float) (Math.round(fuel_val * 100.0) / 100.0);
 
@@ -159,16 +161,20 @@ public class profile extends Fragment {
                         visitors.add(new PieEntry(electricity_amount_rounded, "Electricity Amount"));
                         visitors.add(new PieEntry(fuel_amount_rounded, "Fuel Amount"));
                         visitors.add(new PieEntry(waste_rounded, "Waste Amount"));
-                        PieDataSet pieDataSet = new PieDataSet(visitors, "Total Emission Amount");
-                        pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
-                        pieDataSet.setValueTextColor(Color.BLACK);
-                        pieDataSet.setValueTextSize(16f);
+                        PieDataSet pieDataSet = getPieDataSet(visitors, pieChart);
                         PieData pieData = new PieData(pieDataSet);
                         pieChart.setData(pieData);
                         pieChart.getDescription().setEnabled(false);
                         pieChart.invalidate();
-                        pieChart.setCenterText("Carbon Footprint\n(tCO2e)");
-                        pieChart.animate();
+                        pieChart.setCenterText("Total Carbon Footprint\n(tCO2e)");
+                        Description description = new Description();
+                        description.setText("*tCO2e is Tons of Carbon Dioxide equivalent");
+                        description.setTextColor(Color.BLACK);
+                        description.setTextSize(10f);
+                        description.setPosition(545f, 560f);
+                        pieChart.setDescription(description);
+                        pieChart.getDescription().setEnabled(true);
+                        pieChart.animateY(1000, Easing.EaseInOutQuad);
 
                         TextView totalcarbon = view.findViewById(R.id.total_text);
                         String text = "Your carbon footprint: " + carbon_footprint_rounded + "tCO2e.";
@@ -179,5 +185,27 @@ public class profile extends Fragment {
                 }
             }
         });
+    }
+
+    @NonNull
+    private static PieDataSet getPieDataSet(ArrayList<PieEntry> visitors, PieChart pieChart) {
+        PieDataSet pieDataSet = new PieDataSet(visitors, "");
+        pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
+        pieDataSet.setValueTextColor(Color.BLACK);
+        pieChart.setEntryLabelColor(Color.BLACK);
+        pieDataSet.setValueTextSize(16f);
+        pieDataSet.setSliceSpace(3f);
+
+        pieDataSet.setDrawValues(true);
+        pieDataSet.setValueLineColor(Color.GRAY);
+        pieDataSet.setValueLinePart1OffsetPercentage(30.f);
+        pieDataSet.setValueLinePart1Length(0.2f);
+        pieDataSet.setValueLinePart2Length(0.2f);
+        pieDataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+        pieDataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
+        Description description = new Description();
+        description.setText("*tCO2e is Tons of Carbon Dioxide in equivalence");
+        pieChart.setDescription(description);
+        return pieDataSet;
     }
 }
