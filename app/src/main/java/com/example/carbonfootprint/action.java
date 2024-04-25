@@ -13,16 +13,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.apache.commons.math3.ml.clustering.*;
+import org.apache.commons.math3.ml.clustering.CentroidCluster;
+
 import com.vishnusivadas.advanced_httpurlconnection.FetchData;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 import smile.clustering.KMeans;
 
@@ -43,16 +49,23 @@ public class action extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        RecyclerView recyclerView = view.findViewById(R.id.rvHorizontalCards);
-        layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
-        recyclerView.setLayoutManager(layoutManager);
-        List<DataItem> texts = getActions();
-        CustomAdapter adapter = new CustomAdapter(texts);
-        recyclerView.setAdapter(adapter);
-        textView = view.findViewById(R.id.textViewClusterInfo);
+        try {
+            super.onViewCreated(view, savedInstanceState);
+            RecyclerView recyclerView = view.findViewById(R.id.rvHorizontalCards);
+            layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+            recyclerView.setLayoutManager(layoutManager);
+            List<DataItem> texts = null;
+            texts = getActions();
 
-        fetchDataAndCluster();
+            Log.d("fegerg", texts.toString());
+            CustomAdapter adapter = new CustomAdapter(texts);
+            recyclerView.setAdapter(adapter);
+            textView = view.findViewById(R.id.textViewClusterInfo);
+
+            fetchDataAndCluster();
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void fetchDataAndCluster() {
@@ -93,35 +106,8 @@ public class action extends Fragment {
                         userClusterMap.put(keys.get(i), labels[i]);
                     }
 
-                    for (Map.Entry<Integer, Integer> entry : userClusterMap.entrySet()) {
-                        int userId = Integer.parseInt(Login.user_Id);
-                        if (entry.getKey() == userId) {
-                            Log.d("eikugfwei", String.valueOf(entry.getValue()));
-                            userClusterId = entry.getValue();
-                        }
-                    }
-
-                    ClusterAnalysis analysis = new ClusterAnalysis(kmeans.centroids, userClusterId);
-                    Map<String, String> userCategoryAction = analysis.compareWithMaxValues();
-
-
-                    StringBuilder output = new StringBuilder();
-                    userCategoryAction.forEach((question, category) -> {
-                        output.append(question).append("\n");
-                    });
-
+                    StringBuilder output = getStringBuilder(kmeans);
                     textView.setText(output);
-
-                    StringBuilder output1 = new StringBuilder("User cluster group: ").append(userClusterId).append("\nCluster Characteristics:\n");
-                    for (int i = 0; i < kmeans.centroids.length; i++) {
-                        output1.append("Cluster ").append(i + 1).append(":\n");
-                        for (int j = 0; j < kmeans.centroids[i].length; j++) {
-                            output1.append("Q").append(j + 1).append(": ").append(String.format("%.2f", kmeans.centroids[i][j])).append("\n");
-                        }
-                        output1.append("\n");
-                    }
-                    Log.d("uigiuy", String.valueOf(output1));
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -129,65 +115,127 @@ public class action extends Fragment {
         }
     }
 
-    private List<DataItem> getActions() {
-        FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/getAction.php");
-        List<DataItem> recommendAction = new ArrayList<>();
-//        Map<String, List<String>> categorizedActions = new HashMap<>();
+    @NonNull
+    private StringBuilder getStringBuilder(KMeans kmeans) {
+        ClusterAnalysis analysis = new ClusterAnalysis(kmeans.centroids, userClusterId);
+        Map<String, String> userCategoryAction;
+        userCategoryAction = analysis.compareWithMaxValues();
 
+        Map<String, String> feedbackMap = new HashMap<>();
+
+        feedbackMap.put("How many people live in your household?", "You should minimize energy consumption and adopt sustainable lifestyles.");
+        feedbackMap.put("What is the source of energy?", "You should explore renewable energy sources to reduce environmental impact.");
+        feedbackMap.put("How much energy do you approximately consume monthly?", "You should aim to reduce their monthly energy consumption.");
+        feedbackMap.put("How do you take a bath on daily basis?", "You should consider shorter showers to save water and energy.");
+        feedbackMap.put("How often do you do laundry?", "You should use full loads and cold water to save energy.");
+        feedbackMap.put("How much waste you throw per week? (In kg)", "You should aim to reduce waste through recycling and composting.");
+        feedbackMap.put("Where do you usually purchase groceries?", "You should buy local to reduce their carbon footprint.");
+        feedbackMap.put("How much do you usually spend on groceries weekly?", "You should plan meals to minimize waste and save money.");
+        feedbackMap.put("How frequently do you eat at a restaurant on a weekly basis?", "You should reduce dining out to save money and reduce food waste.");
+        feedbackMap.put("Do you pack the leftover food in a restaurant when you have not finished eating?", "You should always take leftovers home to avoid waste.");
+        feedbackMap.put("If the food that you have prepared is not finished, what do you do with it?", "You should properly store leftovers for future consumption.");
+        feedbackMap.put("Will you try your best to finish the food on your plate?", "You should try to finish the food on their plate to reduce waste.");
+        feedbackMap.put("How frequently do you bring your bag whenever you go shopping?", "You should use reusable bags to reduce plastic waste.");
+        feedbackMap.put("Do you or your family member own a Hybrid or electric vehicle?", "You should consider the benefits of hybrid or electric vehicles.");
+        feedbackMap.put("How many fuel consumption on weekly basis?", "You should reduce their weekly fuel consumption to save costs and decrease environmental impact.");
+        feedbackMap.put("How do you go to school?", "You should use public transport or carpool to reduce pollution.");
+        feedbackMap.put("What means of transport do you use the most?", "You should opt for eco-friendlier modes of transportation to reduce their carbon footprint.");
+
+        StringBuilder output = new StringBuilder();
+        userCategoryAction.forEach((question, category) -> {
+            String feedback = feedbackMap.get(question);
+            if (feedback != null) {
+                output.append("\u2022 ").append(feedback).append("\n");
+            }
+        });
+        return output;
+    }
+
+    private List<DataItem> getActions() throws JSONException {
+        List<DataItem> recommendActions = new ArrayList<>();
+        FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/clusterCalc.php");
         if (fetchData.startFetch()) {
             if (fetchData.onComplete()) {
                 String result = fetchData.getResult();
-
                 try {
                     JSONArray jsonArray = new JSONArray(result);
-                    Map<String, TextVectorization> categoryVectorizers = new HashMap<>();
-                    Map<String, KMeans> categoryModels = new HashMap<>();
+                    Map<Integer, List<Integer>> userData = new HashMap<>();
 
                     for (int i = 0; i < jsonArray.length(); i++) {
                         JSONObject obj = jsonArray.getJSONObject(i);
-                        String action_name = obj.getString("action_name");
-                        String action_description = obj.getString("action_description");
-                        String action_category = obj.getString("action_category").toLowerCase();
+                        int userId = obj.getInt("user_id");
+                        int questionId = obj.getInt("question_id");
+                        int answer = obj.getInt("option_index");
 
-                        recommendAction.add(new DataItem(action_name, action_description));
-//                        categorizedActions.computeIfAbsent(action_category, k -> new ArrayList<>()).add(action_name);
+                        List<Integer> answers = userData.computeIfAbsent(userId, k -> new ArrayList<>());
+                        while (answers.size() <= questionId) {
+                            answers.add(0);
+                        }
+                        answers.set(questionId, answer);
                     }
 
-//                    for (Map.Entry<String, List<String>> entry : categorizedActions.entrySet()) {
-//                        List<String[]> docs = entry.getValue().stream().map(action -> action.split("\\s+")).collect(Collectors.toList());
-//                        TextVectorization vectorizer = new TextVectorization(docs);
-//                        double[][] dataMatrix = vectorizer.transform();
-//
-//                        KMeans kmeans = KMeans.fit(dataMatrix, 5);
-//                        categoryVectorizers.put(entry.getKey(), vectorizer);
-//                        categoryModels.put(entry.getKey(), kmeans);
-//                    }
-//
-//                    String input = "How many fuel consumption on weekly basis";
-//                    String[] inputArray = {input};
-//                    List inputList = Arrays.asList(new String[][]{inputArray});
-//                    List<String> transportActions = categorizedActions.get("transportation");
-//                    if (transportActions != null && categoryVectorizers.containsKey("transportation") && categoryModels.containsKey("transportation")) {
-//                        TextVectorization transportVectorizer = categoryVectorizers.get("transportation");
-//                        KMeans transportKMeans = categoryModels.get("transportation");
-//
-//                        assert transportVectorizer != null;
-//                        double[][] inputVector = transportVectorizer.transform1(inputList);
-//                        if (inputVector.length > 0) {
-//                            double[] queryVector = inputVector[0];
-//                            int predictedCluster = transportKMeans.predict(queryVector);
-//                            Log.d("YVYU", "Predicted cluster for input: " + predictedCluster);
-//                        } else {
-//                            Log.d("YVYU", "ioob");
-//                        }
-//                    }
+                    List<Integer> keys = new ArrayList<>(userData.keySet());
+                    double[][] dataMatrix = new double[userData.size()][];
+                    for (int i = 0; i < keys.size(); i++) {
+                        List<Integer> answers = userData.get(keys.get(i));
+                        assert answers != null;
+                        dataMatrix[i] = answers.stream().mapToDouble(Integer::doubleValue).toArray();
+                    }
 
+                    KMeans kmeans = KMeans.fit(dataMatrix, 3);
+                    ClusterAnalysis analysis = new ClusterAnalysis(kmeans.centroids, userClusterId);
+                    Map<String, String> userCategoryAction = analysis.compareWithMaxValues();
+                    JSONObject jsonObject = new JSONObject();
+                    for (Map.Entry<String, String> entry : userCategoryAction.entrySet()) {
+                        jsonObject.put(entry.getKey(), entry.getValue());
+                    }
+                    FetchData fd = new FetchData("http://192.168.100.4/CarbonFootprintFYP/getAction.php?userQues=" + jsonObject);
+                    Log.d("1", String.valueOf(jsonObject));
+                    if (fd.startFetch()) {
+                        if (fd.onComplete()) {
+                            String result1 = fd.getResult();
+                            Log.d("2", result1);
+                            String[] recommendations = result1.split("\\), \\(");
 
+                            for (String recommendation : recommendations) {
+                                recommendation = recommendation.replaceAll("[()']", "");
+                                recommendation = recommendation.replaceAll("\\[", "").replaceAll("\\]","");
+
+                                // Split the string at the first comma only
+                                String[] parts = recommendation.split(", ", 2);
+                                if (parts.length == 2) {
+                                    String actionName = parts[0].trim(); // Trim any leading or trailing spaces
+                                    String actionDescription = parts[1].trim(); // Ensure description is clean
+                                    recommendActions.add(new DataItem(actionName, actionDescription));
+                                    Log.d("SplitDebug", "Action: " + actionName + ", Description: " + actionDescription);
+                                }
+                            }
+                        }
+                    }
+                    return recommendActions;
                 } catch (JSONException e) {
                     throw new RuntimeException(e);
                 }
             }
         }
-        return recommendAction;
+        return recommendActions;
+    }
+}
+
+class DataItem {
+    private String name;
+    private String description;
+
+    public DataItem(String name, String description) {
+        this.name = name;
+        this.description = description;
+    }
+
+    public String getTitle() {
+        return name;
+    }
+
+    public String getDescription() {
+        return description;
     }
 }

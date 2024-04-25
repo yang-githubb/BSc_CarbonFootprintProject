@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:paddingTop="?attr/actionBarSize"
     android:paddingBottom="?attr/actionBarSize"
     tools:context=".action">
@@ -18,8 +18,8 @@
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
             android:layout_marginTop="10dp"
+            android:layout_weight="1"
             app:cardCornerRadius="10dp">
 
             <LinearLayout
@@ -28,32 +28,42 @@
                 android:orientation="vertical"
                 android:padding="15dp">
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:fontFamily="@font/poppinsmedium"
+                    android:text="@string/analysis"
+                    android:textColor="@color/black"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginStart="4dp"
-                        android:fontFamily="@font/poppinsmedium"
-                        android:text="@string/analysis"
-                        android:textColor="@color/black"
-                        android:textSize="25sp"
-                        android:textStyle="bold" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:fontFamily="@font/poppinsmedium"
+                    android:text="@string/your_personalized_feedback"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <ScrollView
+                    android:id="@+id/scrollView"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/border"
+                    android:padding="7dp">
 
                     <TextView
                         android:id="@+id/textViewClusterInfo"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginTop="70dp"
                         android:fontFamily="@font/poppinsmedium"
                         android:textColor="@color/black"
                         android:textSize="15sp"
                         android:textStyle="bold" />
-                </RelativeLayout>
+                </ScrollView>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
@@ -61,8 +71,8 @@
             android:id="@+id/ActionCardView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="1"
             android:layout_marginTop="10dp"
+            android:layout_weight="1"
             app:cardCornerRadius="10dp">
 
             <LinearLayout
@@ -71,34 +81,26 @@
                 android:orientation="vertical"
                 android:padding="15dp">
 
-                <RelativeLayout
+                <TextView
+                    android:id="@+id/recommendAction"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:fontFamily="@font/poppinsmedium"
+                    android:text="@string/recommended_action"
+                    android:textColor="@color/black"
+                    android:textSize="25sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvHorizontalCards"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
-
-                    <TextView
-                        android:id="@+id/recommendAction"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentStart="true"
-                        android:layout_marginStart="4dp"
-                        android:fontFamily="@font/poppinsmedium"
-                        android:text="@string/recommended_action"
-                        android:textColor="@color/black"
-                        android:textSize="25sp"
-                        android:textStyle="bold" />
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvHorizontalCards"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_below="@id/recommendAction"
-                        android:layout_marginTop="10dp"
-                        android:orientation="horizontal"
-                        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                        android:scrollbars="horizontal" />
-                </RelativeLayout>
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal"
+                    android:scrollbars="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
-
     </LinearLayout>
 </FrameLayout>
