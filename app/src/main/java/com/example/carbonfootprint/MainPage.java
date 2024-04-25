@@ -69,6 +69,7 @@ public class MainPage extends AppCompatActivity implements BottomNavigationView.
 
         if (id == R.id.action_redoSurvey) {
             Intent intent = new Intent(MainPage.this, Survey.class);
+            intent.putExtra("LOGGEDIN", true);
             startActivity(intent);
         } else if (id == R.id.action_about) {
             Intent intent = new Intent(MainPage.this, AboutActivity.class);

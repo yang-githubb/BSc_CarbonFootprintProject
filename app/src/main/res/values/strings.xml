@@ -124,4 +124,8 @@
     <string name="malaysia_average_carbon_footprint_10_158tco2e">Malaysia average carbon footprint: 10.158tCO2e</string>
     <string name="forgot_password">Forgot password?</string>
     <string name="your_personalized_feedback">Your personalized feedback</string>
+    <string name="about_description">The Carbon Footprint Analyser app is designed to raise awareness and educate users on their carbon footprint. By providing personalized feedback and actionable insights, the app aims to encourage sustainable living choices..</string>
+    <string name="features_list">User Authentication, Carbon Footprint Survey, Carbon Footprint Facts, Actionable Insights</string>
+    <string name="acknowledgments">Special thanks to the Dr Zila and Dr Safwan who provided insights and verified the information presented in the app.</string>
+
 </resources>

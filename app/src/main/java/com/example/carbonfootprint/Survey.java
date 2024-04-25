@@ -49,6 +49,7 @@ public class Survey extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_survey);
+        boolean receivedValue = getIntent().getBooleanExtra("LOGGEDIN", false);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -76,9 +77,15 @@ public class Survey extends AppCompatActivity {
         }
 
         toolbar.setNavigationOnClickListener(v -> {
-            Intent intent = new Intent(getApplicationContext(), Login.class);
-            startActivity(intent);
-            finish();
+            if (receivedValue) {
+                Intent intent = new Intent(getApplicationContext(), MainPage.class);
+                startActivity(intent);
+                finish();
+            } else {
+                Intent intent = new Intent(getApplicationContext(), Login.class);
+                startActivity(intent);
+                finish();
+            }
         });
 
         Snackbar.make(findViewById(R.id.main), "Welcome to the Survey! Please answer all questions.", Snackbar.LENGTH_LONG).show();
