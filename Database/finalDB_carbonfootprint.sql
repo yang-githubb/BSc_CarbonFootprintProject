@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Apr 22, 2024 at 07:32 PM
+-- Generation Time: Apr 25, 2024 at 01:19 PM
 -- Server version: 10.4.27-MariaDB
 -- PHP Version: 8.2.0
 
@@ -538,7 +538,58 @@ INSERT INTO `answers` (`answer_id`, `user_id`, `question_id`, `option_index`) VA
 (712, 22, 14, 1),
 (713, 22, 15, 5),
 (714, 22, 16, 3),
-(715, 22, 17, 1);
+(715, 22, 17, 1),
+(716, 94, 1, 4),
+(717, 94, 2, 2),
+(718, 94, 3, 1),
+(719, 94, 4, 2),
+(720, 94, 5, 2),
+(721, 94, 6, 2),
+(722, 94, 7, 3),
+(723, 94, 8, 1),
+(724, 94, 9, 4),
+(725, 94, 10, 3),
+(726, 94, 11, 3),
+(727, 94, 12, 2),
+(728, 94, 13, 2),
+(729, 94, 14, 1),
+(730, 94, 15, 1),
+(731, 94, 16, 1),
+(732, 94, 17, 1),
+(733, 95, 1, 5),
+(734, 95, 2, 1),
+(735, 95, 3, 3),
+(736, 95, 4, 1),
+(737, 95, 5, 3),
+(738, 95, 6, 2),
+(739, 95, 7, 3),
+(740, 95, 8, 1),
+(741, 95, 9, 1),
+(742, 95, 10, 1),
+(743, 95, 11, 2),
+(744, 95, 12, 3),
+(745, 95, 13, 2),
+(746, 95, 14, 2),
+(747, 95, 15, 2),
+(748, 95, 16, 1),
+(749, 95, 17, 1),
+(750, 96, 1, 5),
+(751, 96, 2, 1),
+(752, 96, 3, 5),
+(753, 96, 4, 1),
+(754, 96, 5, 1),
+(755, 96, 6, 3),
+(756, 96, 7, 1),
+(757, 96, 8, 2),
+(758, 96, 9, 2),
+(759, 96, 10, 2),
+(760, 96, 11, 2),
+(761, 96, 12, 2),
+(762, 96, 13, 4),
+(763, 96, 14, 2),
+(764, 96, 15, 2),
+(765, 96, 16, 4),
+(766, 96, 17, 4);
 
 -- --------------------------------------------------------
 
@@ -639,23 +690,23 @@ CREATE TABLE `questions` (
 --
 
 INSERT INTO `questions` (`question_id`, `question_text`, `category`) VALUES
-(1, 'How many people live in your household?', 'house'),
-(2, 'What is the source of energy?', 'house'),
-(3, 'How much energy do you approximately consume monthly?', 'house'),
-(4, 'How do you take a bath on daily basis?', 'house'),
-(5, 'How often do you do laundry?', 'house'),
-(6, 'How much waste you throw per week? (In kg)', 'food'),
-(7, 'Where do you usually purchase groceries?', 'food'),
-(8, 'How much do you usually spend on groceries weekly?', 'food'),
-(9, 'How frequently do you eat at a restaurant on a weekly basis?', 'food'),
-(10, 'Do you pack the leftover food in a restaurant when leaving?', 'food'),
-(11, 'If the food that you have prepared is not finished, will you keep the leftover?', 'food'),
-(12, 'Will you try your best to finish the food on your plate?', 'food'),
-(13, 'How frequently do you bring your bag whenever you plan to buy something', 'food'),
-(14, 'Do you or your family member own a Hybrid or electronic car?', 'transportation'),
-(15, 'How many fuel consumption on weekly basis?', 'transportation'),
-(16, 'How do you go to school?', 'transportation'),
-(17, 'What means of transport do you use the most?', 'transportation');
+(1, 'How many people live in your household?', 'home'),
+(2, 'What is the source of energy?', 'home'),
+(3, 'How much energy do you approximately consume monthly?', 'home'),
+(4, 'How do you take a bath on daily basis?', 'home'),
+(5, 'How often do you do laundry?', 'home'),
+(6, 'How much waste you throw per week? (In kg)', 'waste'),
+(7, 'Where do you usually purchase groceries?', 'waste'),
+(8, 'How much do you usually spend on groceries weekly?', 'waste'),
+(9, 'How frequently do you eat at a restaurant on a weekly basis?', 'waste'),
+(10, 'Do you pack the leftover food in a restaurant when leaving?', 'waste'),
+(11, 'If the food that you have prepared is not finished, will you keep the leftover?', 'waste'),
+(12, 'Will you try your best to finish the food on your plate?', 'waste'),
+(13, 'How frequently do you bring your bag whenever you plan to buy something', 'waste'),
+(14, 'Do you or your family member own a Hybrid or electronic car?', 'Transportation'),
+(15, 'How many fuel consumption on weekly basis?', 'Transportation'),
+(16, 'How do you go to school?', 'Transportation'),
+(17, 'What means of transport do you use the most?', 'Transportation');
 
 -- --------------------------------------------------------
 
@@ -715,7 +766,10 @@ INSERT INTO `users` (`id`, `email`, `username`, `password`, `carbon_footprint`) 
 (39, '0', '15', '$2y$10$pMrYJ6qMp1Zayj0vyJcQbOtrdwGVhnr0zI5TG1.FjCoWu4rL6hQMi', 0),
 (40, '0', '16', '$2y$10$qPiBhUz1c/7zJfj2IFKqRujttM9xOl4WuyCIb17pgzEW2rg3TwxGK', 0),
 (41, '0', '17', '$2y$10$Xl.s9F3ni2eUp5QvbI9JdOwbUTZzCsC0uQODx34y7Nhr5IveMEcVi', 0),
-(93, 'taham655@gmail.com', 'taham655', '$2y$10$hW52pskwDiVh18YsU7GS5uRcdY5S78eVXxyj2coWQ8SrrYQdWi0Ui', 0);
+(93, 'taham655@gmail.com', 'taham655', '$2y$10$hW52pskwDiVh18YsU7GS5uRcdY5S78eVXxyj2coWQ8SrrYQdWi0Ui', 0),
+(94, 'jee@gmail.com', 'jee', '$2y$10$85H6drJ.WWK443gfZcUJBOWq5AOYiM4WXCIoNquGwtaJEf2kPCaCK', 0),
+(95, 'r.ramli@soton.ac.uk', 'Zila', '$2y$10$vob72AI1MtR5hyqnB5krful1.DkvdDiwdhw4EZZounkTlUTefrL1a', 0),
+(96, 'fsafwan88@gmail.com', 'stanshi', '$2y$10$aIbtyGtIHalE/kLRanuV1.sjGqmYH7OwDcvwJN2LufLwNvvkkQwSS', 0);
 
 --
 -- Indexes for dumped tables
@@ -764,7 +818,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `answers`
 --
 ALTER TABLE `answers`
-  MODIFY `answer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=716;
+  MODIFY `answer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=767;
 
 --
 -- AUTO_INCREMENT for table `options`
@@ -782,7 +836,7 @@ ALTER TABLE `questions`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=97;
 
 --
 -- Constraints for dumped tables

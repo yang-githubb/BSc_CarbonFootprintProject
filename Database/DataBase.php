@@ -71,17 +71,30 @@ class DataBase
         return $stmt->execute();
     }
 
-   function carbCalc($table, $userId) {
+    function carbCalc($table, $userId) {
         $userId = $this->prepareData($userId);
-        $this->sql = "SELECT * FROM " . $table . " WHERE user_id = '1' AND question_id IN (3, 6, 15)";
-        $result = mysqli_query($this->connect, $this->sql);
-        
-        $rows = array();
-        while($row = mysqli_fetch_assoc($result)) {
-            $rows[] = $row;
-        }
+        $table = mysqli_real_escape_string($this->connect, $table);
+    
+        $stmt = mysqli_prepare($this->connect, "SELECT * FROM $table WHERE user_id = ? AND question_id IN (?, ?, ?)");
+    
+        mysqli_stmt_bind_param($stmt, 'iiii', $userId, $q1, $q2, $q3);
+    
+        $q1 = 3;
+        $q2 = 6;
+        $q3 = 15;
+    
+        mysqli_stmt_execute($stmt);
+    
+        $result = mysqli_stmt_get_result($stmt);
+    
+        $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    
+        // Close the statement
+        mysqli_stmt_close($stmt);
+    
         return $rows;
     }
+    
 
     function clusterCalc($table) {
         $this->sql = "SELECT * FROM " . $table;
@@ -111,6 +124,17 @@ class DataBase
         } else {
             return null; 
         }
+    }
+
+    function getAction() {
+        $stmt = $this->connect->prepare("SELECT * FROM actions");
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $rows = array();
+        while($row = mysqli_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        return $rows;
     }
     
 }?>
