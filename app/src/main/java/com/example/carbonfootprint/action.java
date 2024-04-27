@@ -123,23 +123,23 @@ public class action extends Fragment {
 
         Map<String, String> feedbackMap = new HashMap<>();
 
-        feedbackMap.put("How many people live in your household?", "You should minimize energy consumption and adopt sustainable lifestyles.");
-        feedbackMap.put("What is the source of energy?", "You should explore renewable energy sources to reduce environmental impact.");
-        feedbackMap.put("How much energy do you approximately consume monthly?", "You should aim to reduce their monthly energy consumption.");
-        feedbackMap.put("How do you take a bath on daily basis?", "You should consider shorter showers to save water and energy.");
-        feedbackMap.put("How often do you do laundry?", "You should use full loads and cold water to save energy.");
-        feedbackMap.put("How much waste you throw per week? (In kg)", "You should aim to reduce waste through recycling and composting.");
-        feedbackMap.put("Where do you usually purchase groceries?", "You should buy local to reduce their carbon footprint.");
-        feedbackMap.put("How much do you usually spend on groceries weekly?", "You should plan meals to minimize waste and save money.");
-        feedbackMap.put("How frequently do you eat at a restaurant on a weekly basis?", "You should reduce dining out to save money and reduce food waste.");
-        feedbackMap.put("Do you pack the leftover food in a restaurant when you have not finished eating?", "You should always take leftovers home to avoid waste.");
-        feedbackMap.put("If the food that you have prepared is not finished, what do you do with it?", "You should properly store leftovers for future consumption.");
-        feedbackMap.put("Will you try your best to finish the food on your plate?", "You should try to finish the food on their plate to reduce waste.");
-        feedbackMap.put("How frequently do you bring your bag whenever you go shopping?", "You should use reusable bags to reduce plastic waste.");
-        feedbackMap.put("Do you or your family member own a Hybrid or electric vehicle?", "You should consider the benefits of hybrid or electric vehicles.");
-        feedbackMap.put("How many fuel consumption on weekly basis?", "You should reduce their weekly fuel consumption to save costs and decrease environmental impact.");
-        feedbackMap.put("How do you go to school?", "You should use public transport or carpool to reduce pollution.");
-        feedbackMap.put("What means of transport do you use the most?", "You should opt for eco-friendlier modes of transportation to reduce their carbon footprint.");
+        feedbackMap.put("How many people live in your household?", "Try minimize the home electricity usage.");
+        feedbackMap.put("What is the source of energy?", "Explore the use of renewable energy more.");
+        feedbackMap.put("How much energy do you approximately consume monthly?", "You are using too much energy per month.");
+        feedbackMap.put("How do you take a bath on daily basis?", "You may consider shorter showers to save water and energy.");
+        feedbackMap.put("How often do you do laundry?", "You should save up more cloth before you goes to laundry.");
+        feedbackMap.put("How much waste you throw per week? (In kg)", "Try recycling and composting.");
+        feedbackMap.put("Where do you usually purchase groceries?", "Local goods can help to reduce carbon footprint.");
+        feedbackMap.put("How much do you usually spend on groceries weekly?", "Plan the portion of meals to minimize waste and save money.");
+        feedbackMap.put("How frequently do you eat at a restaurant on a weekly basis?", "Home cook can not only reduce your carbon footprint, it can also reduce carbon footprint.");
+        feedbackMap.put("Do you pack the leftover food in a restaurant when you have not finished eating?", "Order less or pack the food if you cannot finish the food.");
+        feedbackMap.put("If the food that you have prepared is not finished, what do you do with it?", "Leftover can be used as composition as well.");
+        feedbackMap.put("Will you try your best to finish the food on your plate?", "Try to finish the food on their plate to reduce waste.");
+        feedbackMap.put("How frequently do you bring your bag whenever you go shopping?", "Bring a reusable bags whenever shopping to reduce plastic waste.");
+        feedbackMap.put("Do you or your family member own a Hybrid or electric vehicle?", "Having a hybrid or electric vehicles is beneficial to Earth.");
+        feedbackMap.put("How many fuel consumption on weekly basis?", "Try public transport, you might make new friends!");
+        feedbackMap.put("How do you go to school?", "You can have a good time with friends in school bus or carpool.");
+        feedbackMap.put("What means of transport do you use the most?", "You may opt for eco-friendlier modes of transportation to reduce their carbon footprint.");
 
         StringBuilder output = new StringBuilder();
         userCategoryAction.forEach((question, category) -> {
