@@ -190,24 +190,20 @@ public class action extends Fragment {
                         jsonObject.put(entry.getKey(), entry.getValue());
                     }
                     FetchData fd = new FetchData("http://192.168.100.4/CarbonFootprintFYP/getAction.php?userQues=" + jsonObject);
-                    Log.d("1", String.valueOf(jsonObject));
                     if (fd.startFetch()) {
                         if (fd.onComplete()) {
                             String result1 = fd.getResult();
-                            Log.d("2", result1);
                             String[] recommendations = result1.split("\\), \\(");
 
                             for (String recommendation : recommendations) {
                                 recommendation = recommendation.replaceAll("[()']", "");
                                 recommendation = recommendation.replaceAll("\\[", "").replaceAll("\\]","");
 
-                                // Split the string at the first comma only
                                 String[] parts = recommendation.split(", ", 2);
                                 if (parts.length == 2) {
-                                    String actionName = parts[0].trim(); // Trim any leading or trailing spaces
-                                    String actionDescription = parts[1].trim(); // Ensure description is clean
+                                    String actionName = parts[0].trim();
+                                    String actionDescription = parts[1].trim();
                                     recommendActions.add(new DataItem(actionName, actionDescription));
-                                    Log.d("SplitDebug", "Action: " + actionName + ", Description: " + actionDescription);
                                 }
                             }
                         }

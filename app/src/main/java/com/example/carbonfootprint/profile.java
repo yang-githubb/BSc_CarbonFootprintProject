@@ -208,4 +208,67 @@ public class profile extends Fragment {
         pieChart.setDescription(description);
         return pieDataSet;
     }
+
+    public double calculate(String num1, String num2) {
+        double electricity_emmisionfactor = 0.758;
+        double fuel_emmisionfactor = 2.34502;
+        double waste_emmisionfactor = 0.497;
+
+        double total_amount = 0;
+
+        switch (num1) {
+            case "3":
+                switch (num2) {
+                    case "1":
+                        total_amount += 600 * electricity_emmisionfactor;
+                        break;
+                    case "2":
+                        total_amount += 1800 * electricity_emmisionfactor;
+                        break;
+                    case "3":
+                        total_amount += 3000 * electricity_emmisionfactor;
+                        break;
+                    case "4":
+                        total_amount += 5400 * electricity_emmisionfactor;
+                        break;
+                    case "5":
+                        total_amount += 12000 * electricity_emmisionfactor;
+                        break;
+                }
+                break;
+            case "6":
+                switch (num2) {
+                    case "1":
+                        total_amount += 6000 * waste_emmisionfactor;
+                        break;
+                    case "2":
+                        total_amount += 30000 * waste_emmisionfactor;
+                        break;
+                    case "3":
+                        total_amount += 90000 * waste_emmisionfactor;
+                        break;
+                }
+                break;
+            case "15":
+                switch (num2) {
+                    case "1":
+                        total_amount += 171 * fuel_emmisionfactor;
+                        break;
+                    case "2":
+                        total_amount += 514 * fuel_emmisionfactor;
+                        break;
+                    case "3":
+                        total_amount += 857 * fuel_emmisionfactor;
+                        break;
+                    case "4":
+                        total_amount += 1200 * fuel_emmisionfactor;
+                        break;
+                    case "5":
+                        total_amount += 1714 * fuel_emmisionfactor;
+                        break;
+                }
+                break;
+        }
+        return total_amount;
+    }
 }
