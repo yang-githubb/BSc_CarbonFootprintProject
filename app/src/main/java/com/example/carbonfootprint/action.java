@@ -57,6 +57,7 @@ public class action extends Fragment {
             List<DataItem> texts = null;
             texts = getActions();
 
+            Log.d("fegerg", texts.toString());
             CustomAdapter adapter = new CustomAdapter(texts);
             recyclerView.setAdapter(adapter);
             textView = view.findViewById(R.id.textViewClusterInfo);
