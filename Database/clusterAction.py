@@ -4,6 +4,7 @@ import urllib.parse
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.cluster import KMeans
 import traceback
+import random
 from sklearn.metrics.pairwise import cosine_similarity;
 import numpy as np;
 
@@ -27,7 +28,7 @@ try:
         kmeans.fit(X)
         return kmeans, vectorizer
 
-    def recommend_actions(question, cluster_label, actions, vectorizer, kmeans_model, top_n=3):
+    def recommend_actions(question, cluster_label, actions, vectorizer, kmeans_model, top_n=2):
         question_vec = vectorizer.transform([question])
         predicted_cluster = kmeans_model.predict(question_vec)[0]
         
@@ -90,7 +91,7 @@ try:
             actions = home_actions
             vectorizer = vectorizer_home
             kmeans_model = km_home
-            for question_text, category in question.items():
+            for question_text in house_list:
                 recommended_actions = recommend_actions(question_text, cluster_label, actions, vectorizer, kmeans_model)
                 recommendations[question_text] = recommended_actions
 
@@ -101,7 +102,7 @@ try:
             actions = waste_actions
             vectorizer = vectorizer_waste
             kmeans_model = km_waste
-            for question_text, category in question.items():
+            for question_text in food_list:
                 recommended_actions = recommend_actions(question_text, cluster_label, actions, vectorizer, kmeans_model)
                 recommendations[question_text] = recommended_actions
                 
@@ -112,24 +113,21 @@ try:
             actions = transport_actions
             vectorizer = vectorizer_transport
             kmeans_model = km_transport
-            for question_text, category in question.items():
+            for question_text in transportation_list:
                 recommended_actions = recommend_actions(question_text, cluster_label, actions, vectorizer, kmeans_model)
                 recommendations[question_text] = recommended_actions
                             
         recommendation_list = []
-        
         for recommended_actname in recommendations.values():
             if recommended_actname is not None: 
                 for action_name, action_description in all_action:
                     if action_name in recommended_actname:
                         recommendation_list.append((action_name, action_description))
             else:
-                for index, (action_name, action_description) in enumerate(all_action):
-                    if index == 10:
-                        break
-                    recommendation_list.append((action_name, action_description))
-
-        print(recommendation_list)
+                    random_action = random.choice(all_action) 
+                    recommendation_list.append((random_action[0], random_action[1]))        
+        
+        print(set(recommendation_list))
 except Exception as e:
     error_message = str(e)
     error_traceback = traceback.format_exc()
