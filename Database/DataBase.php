@@ -108,9 +108,15 @@ class DataBase
     }
 
     function insertAns($table, $userId, $questionId, $optionIndex) {
-            $stmt = $this->connect->prepare("INSERT INTO $table (user_id, question_id, option_index) VALUES (?, ?, ?)");
-            $stmt->bind_param("iii", $userId, $questionId, $optionIndex);
-            return $stmt->execute();
+        $stmt = $this->connect->prepare("INSERT INTO $table (user_id, question_id, option_index) VALUES (?, ?, ?)");
+        $stmt->bind_param("iii", $userId, $questionId, $optionIndex);
+        return $stmt->execute();
+    }
+
+    function updateAns($table, $userId, $questionId, $optionIndex) {
+        $stmt = $this->connect->prepare("UPDATE $table SET option_index = ? WHERE user_id = ? AND question_id = ?");
+        $stmt->bind_param("iii", $optionIndex, $userId, $questionId);
+        return $stmt->execute();
     }
 
     function getUserIdByUsername($username) {
