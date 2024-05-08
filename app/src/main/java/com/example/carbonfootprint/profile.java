@@ -105,16 +105,16 @@ public class profile extends Fragment {
                                 case "6":
                                     switch (optionIndex) {
                                         case "1":
-                                            carbonfootprint_amount += 6000 * waste_emmisionfactor;
-                                            waste_amount += 6000 * waste_emmisionfactor;
+                                            carbonfootprint_amount += 4000 * waste_emmisionfactor;
+                                            waste_amount += 4000 * waste_emmisionfactor;
                                             break;
                                         case "2":
-                                            carbonfootprint_amount += 30000 * waste_emmisionfactor;
-                                            waste_amount += 30000 * waste_emmisionfactor;
+                                            carbonfootprint_amount += 10000 * waste_emmisionfactor;
+                                            waste_amount += 10000 * waste_emmisionfactor;
                                             break;
                                         case "3":
-                                            carbonfootprint_amount += 90000 * waste_emmisionfactor;
-                                            waste_amount += 90000 * waste_emmisionfactor;
+                                            carbonfootprint_amount += 70000 * waste_emmisionfactor;
+                                            waste_amount += 70000 * waste_emmisionfactor;
                                             break;
                                     }
                                     break;
@@ -239,13 +239,13 @@ public class profile extends Fragment {
             case "6":
                 switch (num2) {
                     case "1":
-                        total_amount += 6000 * waste_emmisionfactor;
+                        total_amount += 4000 * waste_emmisionfactor;
                         break;
                     case "2":
-                        total_amount += 30000 * waste_emmisionfactor;
+                        total_amount += 10000 * waste_emmisionfactor;
                         break;
                     case "3":
-                        total_amount += 90000 * waste_emmisionfactor;
+                        total_amount += 70000 * waste_emmisionfactor;
                         break;
                 }
                 break;

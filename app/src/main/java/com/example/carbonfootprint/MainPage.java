@@ -1,7 +1,10 @@
 package com.example.carbonfootprint;
 
+import static com.example.carbonfootprint.Login.username;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -29,7 +32,7 @@ public class MainPage extends AppCompatActivity implements BottomNavigationView.
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
+        String username = getIntent().getStringExtra("USER_ID");
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Carbon Footprint FYP");

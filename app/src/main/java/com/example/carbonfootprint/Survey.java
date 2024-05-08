@@ -8,6 +8,7 @@ import com.vishnusivadas.advanced_httpurlconnection.PutData;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -20,6 +21,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+
+import java.util.Arrays;
+import static com.example.carbonfootprint.Login.username;
 
 public class Survey extends AppCompatActivity {
 
@@ -56,12 +60,11 @@ public class Survey extends AppCompatActivity {
             return insets;
         });
         setupListeners();
-        String username = getIntent().getStringExtra("USER_ID");
 
         Button submitButton = findViewById(R.id.submit_button);
         submitButton.setOnClickListener(v -> {
             if (areAllQuestionsAnswered()) {
-                insertAnswersIntoDatabase(username, selectedAnswers);
+                insertAnswersIntoDatabase(username, selectedAnswers,receivedValue);
             } else {
                 int firstUnansweredId = findFirstUnansweredQuestion();
                 scrollToUnansweredQuestion(firstUnansweredId);
@@ -104,7 +107,7 @@ public class Survey extends AppCompatActivity {
         }
     }
 
-    void insertAnswersIntoDatabase(String userId, int[] selectedOptionIds) {
+    void insertAnswersIntoDatabase(String userId, int[] selectedOptionIds,boolean logged) {
         for (int i = 0; i < selectedOptionIds.length; i++) {
             int questionId = i + 1;
             int optionId = selectedOptionIds[i];
@@ -119,17 +122,34 @@ public class Survey extends AppCompatActivity {
                 data[0] = String.valueOf(userId);
                 data[1] = String.valueOf(questionId);
                 data[2] = String.valueOf(optionId);
-                PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/user_answer.php", "POST", field, data);
-                if (putData.startPut()) {
-                    if (putData.onComplete()) {
-                        String result = putData.getResult();
-                        if (result.equals("Insert Success")) {
-                            Snackbar.make(findViewById(R.id.main), result, Snackbar.LENGTH_LONG).show();
-                            Intent intent = new Intent(getApplicationContext(), MainPage.class);
-                            startActivity(intent);
-                            finish();
-                        } else {
-                            Snackbar.make(findViewById(R.id.main), "Error: Please try again!", Snackbar.LENGTH_LONG).show();
+                if (logged) {
+                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/update_answer.php", "POST", field, data);
+                    if (putData.startPut()) {
+                        if (putData.onComplete()) {
+                            String result = putData.getResult();
+                            if (result.equals("Update Success")) {
+                                Snackbar.make(findViewById(R.id.main), result, Snackbar.LENGTH_LONG).show();
+                                Intent intent = new Intent(getApplicationContext(), MainPage.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Snackbar.make(findViewById(R.id.main), "Error: Please try again!", Snackbar.LENGTH_LONG).show();
+                            }
+                        }
+                    }
+                } else {
+                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/user_answer.php", "POST", field, data);
+                    if (putData.startPut()) {
+                        if (putData.onComplete()) {
+                            String result = putData.getResult();
+                            if (result.equals("Insert Success")) {
+                                Snackbar.make(findViewById(R.id.main), result, Snackbar.LENGTH_LONG).show();
+                                Intent intent = new Intent(getApplicationContext(), MainPage.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Snackbar.make(findViewById(R.id.main), "Error: Please try again!", Snackbar.LENGTH_LONG).show();
+                            }
                         }
                     }
                 }
