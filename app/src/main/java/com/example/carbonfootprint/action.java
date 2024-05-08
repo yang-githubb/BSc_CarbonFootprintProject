@@ -89,7 +89,6 @@ public class action extends Fragment {
                         }
                         answers.set(questionId, answer);
                     }
-
                     List<Integer> keys = new ArrayList<>(userData.keySet());
                     double[][] dataMatrix = new double[userData.size()][];
                     for (int i = 0; i < keys.size(); i++) {
