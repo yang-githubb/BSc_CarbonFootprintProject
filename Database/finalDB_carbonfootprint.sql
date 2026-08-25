@@ -719,7 +719,7 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `password` text NOT NULL,
-  `carbon_footprint` int(11) NOT NULL,
+  `carbon_footprint` int(11) NOT NULL DEFAULT 0,
   `api_token` varchar(64) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
