@@ -1,34 +1,28 @@
 package com.example.carbonfootprint;
 
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
+/**
+ * Identifies which survey questions the user's cluster performs worst on.
+ *
+ * For each question, the cluster whose centroid is closest to the highest
+ * (most carbon-intensive) option is found; if that is the user's cluster,
+ * the question is flagged as an improvement area for the user.
+ *
+ * Questions are kept in survey order (question 1 to 17), so entry j
+ * corresponds to column j of the centroid matrix and to MAX_OPTION[j].
+ */
 public class ClusterAnalysis {
-    private final double[][] clusterData;
-    private final int usercluster;
 
-    int[] optionindex = {
-            5,
-            2,
-            5,
-            3,
-            4,
-            3,
-            3,
-            4,
-            4,
-            3,
-            3,
-            3,
-            4,
-            2,
-            5,
-            5,
-            5
+    /** Highest option index per question, in question order (1-17). */
+    private static final int[] MAX_OPTION = {
+            5, 2, 5, 3, 4, 3, 3, 4, 4, 3, 3, 3, 4, 2, 5, 5, 5
     };
 
-    Map<String, String> questions = new HashMap<>();
-
-    private void initializeQuestions() {
+    /** Survey questions in question-ID order, mapped to their category. */
+    static Map<String, String> questionCategories() {
+        Map<String, String> questions = new LinkedHashMap<>();
         questions.put("How many people live in your household?", "home");
         questions.put("What is the source of energy?", "home");
         questions.put("How much energy do you approximately consume monthly?", "home");
@@ -46,40 +40,43 @@ public class ClusterAnalysis {
         questions.put("How many fuel consumption on weekly basis?", "Transportation");
         questions.put("How do you go to school?", "Transportation");
         questions.put("What means of transport do you use the most?", "Transportation");
+        return questions;
     }
 
+    private final double[][] centroids;
+    private final int userCluster;
+    private final Map<String, String> questions = questionCategories();
 
-    public ClusterAnalysis(double[][] data,int usercluster) {
-        this.clusterData = data;
-        this.usercluster = usercluster;
-        initializeQuestions();
-
+    public ClusterAnalysis(double[][] centroids, int userCluster) {
+        this.centroids = centroids;
+        this.userCluster = userCluster;
     }
 
+    /**
+     * Returns the questions (with their category) on which the user's cluster
+     * is the one closest to the most carbon-intensive answer.
+     */
     public Map<String, String> compareWithMaxValues() {
-        List<String> questionKeys = new ArrayList<>(questions.keySet());
-        Map<String, String> matchingCategories = new HashMap<>();
+        Map<String, String> matchingCategories = new LinkedHashMap<>();
 
-        int[] closestClusterIndex = new int[questionKeys.size()];
-        double[] smallestDiff = new double[questionKeys.size()];
-        Arrays.fill(smallestDiff, Double.MAX_VALUE);
-
-        for (int j = 0; j < questionKeys.size(); j++) {
-            for (int i = 0; i < clusterData.length; i++) {
-                double diff = Math.abs(optionindex[j] - clusterData[i][j]);
-                if (diff < smallestDiff[j]) {
-                    smallestDiff[j] = diff;
-                    closestClusterIndex[j] = i;
+        int j = 0;
+        for (Map.Entry<String, String> entry : questions.entrySet()) {
+            int closestCluster = 0;
+            double smallestDiff = Double.MAX_VALUE;
+            for (int i = 0; i < centroids.length; i++) {
+                if (j >= centroids[i].length) {
+                    continue;
+                }
+                double diff = Math.abs(MAX_OPTION[j] - centroids[i][j]);
+                if (diff < smallestDiff) {
+                    smallestDiff = diff;
+                    closestCluster = i;
                 }
             }
-        }
-
-        for (int j = 0; j < questionKeys.size(); j++) {
-            if (closestClusterIndex[j] == usercluster) {
-                String question = questionKeys.get(j);
-                String category = questions.get(question);
-                matchingCategories.put(question, category);
+            if (closestCluster == userCluster) {
+                matchingCategories.put(entry.getKey(), entry.getValue());
             }
+            j++;
         }
 
         return matchingCategories;

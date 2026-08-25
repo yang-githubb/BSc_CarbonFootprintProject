@@ -6,8 +6,7 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import android.os.Handler;
-import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +14,6 @@ import android.widget.TextView;
 
 import com.github.mikephil.charting.animation.Easing;
 import com.github.mikephil.charting.charts.PieChart;
-import com.github.mikephil.charting.components.Description;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.data.PieEntry;
@@ -27,16 +25,15 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Locale;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class profile extends Fragment {
 
-    public double carbonfootprint_amount = 0;
-    double electricity_amount = 0;
-    double fuel_amount = 0;
-    double waste_amount = 0;
+    private static final String TAG = "ProfileFragment";
 
-    public static double total_amount;
-
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public profile() {
         // Required empty public constructor
@@ -53,143 +50,61 @@ public class profile extends Fragment {
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        String userid = Login.user_Id;
-        String username = Login.username;
         TextView usernametextview = view.findViewById(R.id.textUsername);
-        String greets = "Hi! " + username;
-        usernametextview.setText(greets);
-        Handler handler = new Handler(Looper.getMainLooper());
-        handler.post(() -> {
-            FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/carbCalc.php?userId=" + userid);
-            if (fetchData.startFetch()) {
-                if (fetchData.onComplete()) {
-                    String result = fetchData.getResult();
-                    try {
-                        JSONArray jsonArray = new JSONArray(result);
+        usernametextview.setText(getString(R.string.profile_greeting, Session.getUsername()));
 
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject jsonObject = jsonArray.getJSONObject(i);
-
-                            String question_id = jsonObject.getString("question_id");
-                            String optionIndex = jsonObject.getString("option_index");
-
-                            double electricity_emmisionfactor = 0.758;
-                            double fuel_emmisionfactor = 2.34502;
-                            double waste_emmisionfactor = 0.497;
-
-                            switch (question_id) {
-                                case "3":
-                                    switch (optionIndex) {
-                                        case "1":
-                                            carbonfootprint_amount += 600 * electricity_emmisionfactor;
-                                            electricity_amount += 600 * electricity_emmisionfactor;
-                                            break;
-                                        case "2":
-                                            carbonfootprint_amount += 1800 * electricity_emmisionfactor;
-                                            electricity_amount += 1800 * electricity_emmisionfactor;
-                                            break;
-                                        case "3":
-                                            carbonfootprint_amount += 3000 * electricity_emmisionfactor;
-                                            electricity_amount += 3000 * electricity_emmisionfactor;
-                                            break;
-                                        case "4":
-                                            carbonfootprint_amount += 5400 * electricity_emmisionfactor;
-                                            electricity_amount += 5400 * electricity_emmisionfactor;
-                                            break;
-                                        case "5":
-                                            carbonfootprint_amount += 12000 * electricity_emmisionfactor;
-                                            electricity_amount += 12000 * electricity_emmisionfactor;
-                                            break;
-                                    }
-                                    break;
-                                case "6":
-                                    switch (optionIndex) {
-                                        case "1":
-                                            carbonfootprint_amount += 4000 * waste_emmisionfactor;
-                                            waste_amount += 4000 * waste_emmisionfactor;
-                                            break;
-                                        case "2":
-                                            carbonfootprint_amount += 10000 * waste_emmisionfactor;
-                                            waste_amount += 10000 * waste_emmisionfactor;
-                                            break;
-                                        case "3":
-                                            carbonfootprint_amount += 70000 * waste_emmisionfactor;
-                                            waste_amount += 70000 * waste_emmisionfactor;
-                                            break;
-                                    }
-                                    break;
-                                case "15":
-                                    switch (optionIndex) {
-                                        case "1":
-                                            carbonfootprint_amount += 171 * fuel_emmisionfactor;
-                                            fuel_amount += 171 * fuel_emmisionfactor;
-                                            break;
-                                        case "2":
-                                            carbonfootprint_amount += 514 * fuel_emmisionfactor;
-                                            fuel_amount += 514 * fuel_emmisionfactor;
-                                            break;
-                                        case "3":
-                                            carbonfootprint_amount += 857 * fuel_emmisionfactor;
-                                            fuel_amount += 857 * fuel_emmisionfactor;
-                                            break;
-                                        case "4":
-                                            carbonfootprint_amount += 1200 * fuel_emmisionfactor;
-                                            fuel_amount += 1200 * fuel_emmisionfactor;
-                                            break;
-                                        case "5":
-                                            carbonfootprint_amount += 1714 * fuel_emmisionfactor;
-                                            fuel_amount += 1714 * fuel_emmisionfactor;
-                                            break;
-                                    }
-                                    break;
-                            }
-                        }
-                        total_amount = carbonfootprint_amount / 1000;
-                        double carbonfootprint_val = carbonfootprint_amount / 1000;
-                        float carbon_footprint_rounded = (float) (Math.round(carbonfootprint_val * 100.0) / 100.0);
-
-                        double elec_val = electricity_amount / 1000;
-                        float electricity_amount_rounded = (float) (Math.round(elec_val * 100.0) / 100.0);
-                        double fuel_val = fuel_amount / 1000;
-                        float fuel_amount_rounded = (float) (Math.round(fuel_val * 100.0) / 100.0);
-
-                        double waste_value = waste_amount / 1000;
-                        float waste_rounded = (float) (Math.round(waste_value * 100.0) / 100.0);
-
-                        PieChart pieChart = view.findViewById(R.id.pieChart);
-                        ArrayList<PieEntry> visitors = new ArrayList<>();
-                        visitors.add(new PieEntry(electricity_amount_rounded, "Electricity Amount"));
-                        visitors.add(new PieEntry(fuel_amount_rounded, "Fuel Amount"));
-                        visitors.add(new PieEntry(waste_rounded, "Waste Amount"));
-                        PieDataSet pieDataSet = getPieDataSet(visitors, pieChart);
-                        PieData pieData = new PieData(pieDataSet);
-                        pieChart.setData(pieData);
-                        pieChart.getDescription().setEnabled(false);
-                        pieChart.invalidate();
-                        pieChart.setCenterText("Total Carbon Footprint\n(tCO2e)");
-                        Description description = new Description();
-                        description.setText("*tCO2e is Tons of Carbon Dioxide equivalent");
-                        description.setTextColor(Color.BLACK);
-                        description.setTextSize(10f);
-                        description.setPosition(545f, 560f);
-                        pieChart.setDescription(description);
-                        pieChart.getDescription().setEnabled(true);
-                        pieChart.animateY(1000, Easing.EaseInOutQuad);
-
-                        TextView totalcarbon = view.findViewById(R.id.total_text);
-                        String text = "Your carbon footprint: " + carbon_footprint_rounded + "tCO2e.";
-                        totalcarbon.setText(text);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
+        executor.execute(() -> {
+            FetchData fetchData = new FetchData(ApiConfig.CARB_CALC_URL + "?token=" + Session.getToken());
+            if (fetchData.startFetch() && fetchData.onComplete()) {
+                String result = fetchData.getResult();
+                try {
+                    JSONArray jsonArray = new JSONArray(result);
+                    CarbonCalculator.Breakdown breakdown = new CarbonCalculator.Breakdown();
+                    for (int i = 0; i < jsonArray.length(); i++) {
+                        JSONObject jsonObject = jsonArray.getJSONObject(i);
+                        breakdown.add(jsonObject.getInt("question_id"), jsonObject.getInt("option_index"));
                     }
+                    Session.setLastFootprintTonnes(breakdown.getTotalTonnes());
+                    if (isAdded()) {
+                        requireActivity().runOnUiThread(() -> showBreakdown(view, breakdown));
+                    }
+                } catch (JSONException e) {
+                    Log.e(TAG, "Failed to parse footprint data", e);
                 }
             }
         });
     }
 
+    private void showBreakdown(View view, CarbonCalculator.Breakdown breakdown) {
+        if (!isAdded()) {
+            return;
+        }
+        PieChart pieChart = view.findViewById(R.id.pieChart);
+        ArrayList<PieEntry> entries = new ArrayList<>();
+        entries.add(new PieEntry(round2(breakdown.getElectricityTonnes()), "Electricity"));
+        entries.add(new PieEntry(round2(breakdown.getFuelTonnes()), "Fuel"));
+        entries.add(new PieEntry(round2(breakdown.getWasteTonnes()), "Waste"));
+
+        PieDataSet pieDataSet = getPieDataSet(entries, pieChart);
+        pieChart.setData(new PieData(pieDataSet));
+        pieChart.getDescription().setEnabled(false);
+        pieChart.setCenterText("Total Carbon Footprint\n(tCO2e)");
+        pieChart.invalidate();
+        pieChart.animateY(1000, Easing.EaseInOutQuad);
+
+        TextView totalcarbon = view.findViewById(R.id.total_text);
+        totalcarbon.setText(String.format(Locale.getDefault(),
+                "Your carbon footprint: %.2f tCO2e (tons of CO2 equivalent).",
+                breakdown.getTotalTonnes()));
+    }
+
+    private static float round2(double value) {
+        return (float) (Math.round(value * 100.0) / 100.0);
+    }
+
     @NonNull
-    private static PieDataSet getPieDataSet(ArrayList<PieEntry> visitors, PieChart pieChart) {
-        PieDataSet pieDataSet = new PieDataSet(visitors, "");
+    private static PieDataSet getPieDataSet(ArrayList<PieEntry> entries, PieChart pieChart) {
+        PieDataSet pieDataSet = new PieDataSet(entries, "");
         pieDataSet.setColors(ColorTemplate.COLORFUL_COLORS);
         pieDataSet.setValueTextColor(Color.BLACK);
         pieChart.setEntryLabelColor(Color.BLACK);
@@ -203,72 +118,12 @@ public class profile extends Fragment {
         pieDataSet.setValueLinePart2Length(0.2f);
         pieDataSet.setYValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
         pieDataSet.setXValuePosition(PieDataSet.ValuePosition.OUTSIDE_SLICE);
-        Description description = new Description();
-        description.setText("*tCO2e is Tons of Carbon Dioxide in equivalence");
-        pieChart.setDescription(description);
         return pieDataSet;
     }
 
-    public double calculate(String num1, String num2) {
-        double electricity_emmisionfactor = 0.758;
-        double fuel_emmisionfactor = 2.34502;
-        double waste_emmisionfactor = 0.497;
-
-        double total_amount = 0;
-
-        switch (num1) {
-            case "3":
-                switch (num2) {
-                    case "1":
-                        total_amount += 600 * electricity_emmisionfactor;
-                        break;
-                    case "2":
-                        total_amount += 1800 * electricity_emmisionfactor;
-                        break;
-                    case "3":
-                        total_amount += 3000 * electricity_emmisionfactor;
-                        break;
-                    case "4":
-                        total_amount += 5400 * electricity_emmisionfactor;
-                        break;
-                    case "5":
-                        total_amount += 12000 * electricity_emmisionfactor;
-                        break;
-                }
-                break;
-            case "6":
-                switch (num2) {
-                    case "1":
-                        total_amount += 4000 * waste_emmisionfactor;
-                        break;
-                    case "2":
-                        total_amount += 10000 * waste_emmisionfactor;
-                        break;
-                    case "3":
-                        total_amount += 70000 * waste_emmisionfactor;
-                        break;
-                }
-                break;
-            case "15":
-                switch (num2) {
-                    case "1":
-                        total_amount += 171 * fuel_emmisionfactor;
-                        break;
-                    case "2":
-                        total_amount += 514 * fuel_emmisionfactor;
-                        break;
-                    case "3":
-                        total_amount += 857 * fuel_emmisionfactor;
-                        break;
-                    case "4":
-                        total_amount += 1200 * fuel_emmisionfactor;
-                        break;
-                    case "5":
-                        total_amount += 1714 * fuel_emmisionfactor;
-                        break;
-                }
-                break;
-        }
-        return total_amount;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        executor.shutdownNow();
     }
 }

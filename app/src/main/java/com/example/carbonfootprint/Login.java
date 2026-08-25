@@ -2,8 +2,6 @@ package com.example.carbonfootprint;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,22 +16,23 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
-import com.vishnusivadas.advanced_httpurlconnection.FetchData;
 import com.vishnusivadas.advanced_httpurlconnection.PutData;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class Login extends AppCompatActivity {
+    private static final String TAG = "Login";
+
     TextInputEditText textInputLayoutUsername, textInputLayoutPassword;
     Button buttonLogin;
     TextView textViewSignUp;
     ProgressBar progressBar;
-    private static final String TAG = Survey.class.getSimpleName();
 
-    public static String username;
-    public static String password;
-    public static String user_Id;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,60 +57,59 @@ public class Login extends AppCompatActivity {
         });
 
         buttonLogin.setOnClickListener(v -> {
-            username = String.valueOf(textInputLayoutUsername.getText());
-            password = String.valueOf(textInputLayoutPassword.getText());
+            String username = String.valueOf(textInputLayoutUsername.getText());
+            String password = String.valueOf(textInputLayoutPassword.getText());
 
-            if (!username.isEmpty() && !password.isEmpty()) {
-                progressBar.setVisibility(View.VISIBLE);
-                Handler handler = new Handler(Looper.getMainLooper());
-                handler.post(() -> {
-                    String[] field = new String[2];
-                    field[0] = "username";
-                    field[1] = "password";
-                    String[] data = new String[2];
-                    data[0] = username;
-                    data[1] = password;
-                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/login.php", "POST", field, data);
-                    if (putData.startPut()) {
-                        if (putData.onComplete()) {
-                            progressBar.setVisibility(View.GONE);
-                            String result = putData.getResult();
-                            Log.d("df",result);
-                            if (result.equals("Login Success")) {
-                                fetchUserId(username, MainPage.class);
-                            } else if (result.equals("Survey")) {
-                                fetchUserId(username, Survey.class);
-                            } else if (result.equals("Username or Password wrong")) {
-                                Snackbar.make(findViewById(R.id.buttonLogin), "Username or Password wrong", Snackbar.LENGTH_LONG).show();
-                            }
-                        }
-                    }
-                });
-            } else {
+            if (username.isEmpty() || password.isEmpty()) {
                 Snackbar.make(findViewById(R.id.buttonLogin), "All fields are required!", Snackbar.LENGTH_LONG).show();
+                return;
             }
+
+            progressBar.setVisibility(View.VISIBLE);
+            executor.execute(() -> logIn(username, password));
         });
     }
 
-    private void fetchUserId(String username, Class<?> activityClass) {
-        FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/get_userid.php?username=" + username);
-        if (fetchData.startFetch()) {
-            if (fetchData.onComplete()) {
-                String response = fetchData.getResult();
-                try {
-                    JSONObject jsonObject = new JSONObject(response);
-                    String userId = jsonObject.getString("userId");
-                    Intent intent = new Intent(getApplicationContext(), activityClass);
-                    intent.putExtra("USER_ID", userId);
-                    user_Id=userId;
-                    startActivity(intent);
-                    finish();
-                } catch (JSONException e) {
-                    Log.e(TAG, "Error parsing user data", e);
-                    progressBar.setVisibility(View.GONE);
-                    Snackbar.make(findViewById(R.id.buttonLogin), "Failed to handle user data", Snackbar.LENGTH_LONG).show();
-                }
-            }
+    private void logIn(String username, String password) {
+        String[] field = {"username", "password"};
+        String[] data = {username, password};
+        PutData putData = new PutData(ApiConfig.LOGIN_URL, "POST", field, data);
+        if (putData.startPut() && putData.onComplete()) {
+            String result = putData.getResult();
+            runOnUiThread(() -> handleLoginResult(username, result));
+        } else {
+            runOnUiThread(() -> {
+                progressBar.setVisibility(View.GONE);
+                showError("Could not reach the server. Please try again.");
+            });
         }
+    }
+
+    private void handleLoginResult(String username, String result) {
+        progressBar.setVisibility(View.GONE);
+        try {
+            JSONObject response = new JSONObject(result);
+            if ("success".equals(response.getString("status"))) {
+                Session.start(username, response.getInt("userId"), response.getString("token"));
+                Class<?> next = response.getBoolean("needsSurvey") ? Survey.class : MainPage.class;
+                startActivity(new Intent(getApplicationContext(), next));
+                finish();
+            } else {
+                showError(response.optString("message", "Login failed. Please try again."));
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Unexpected login response", e);
+            showError("Login failed. Please try again.");
+        }
+    }
+
+    private void showError(String message) {
+        Snackbar.make(findViewById(R.id.buttonLogin), message, Snackbar.LENGTH_LONG).show();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdownNow();
     }
 }

@@ -6,8 +6,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.vishnusivadas.advanced_httpurlconnection.PutData;
 
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -22,10 +20,15 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.util.Arrays;
-import static com.example.carbonfootprint.Login.username;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Survey extends AppCompatActivity {
+    private static final String TAG = "Survey";
 
     private final int[] radioGroupIDs = new int[]{
             R.id.question1RadioGroup,
@@ -48,6 +51,8 @@ public class Survey extends AppCompatActivity {
     };
     private final int[] selectedAnswers = new int[radioGroupIDs.length];
 
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,7 +69,8 @@ public class Survey extends AppCompatActivity {
         Button submitButton = findViewById(R.id.submit_button);
         submitButton.setOnClickListener(v -> {
             if (areAllQuestionsAnswered()) {
-                insertAnswersIntoDatabase(username, selectedAnswers,receivedValue);
+                submitButton.setEnabled(false);
+                submitAnswers(submitButton);
             } else {
                 int firstUnansweredId = findFirstUnansweredQuestion();
                 scrollToUnansweredQuestion(firstUnansweredId);
@@ -107,54 +113,39 @@ public class Survey extends AppCompatActivity {
         }
     }
 
-    void insertAnswersIntoDatabase(String userId, int[] selectedOptionIds,boolean logged) {
-        for (int i = 0; i < selectedOptionIds.length; i++) {
-            int questionId = i + 1;
-            int optionId = selectedOptionIds[i];
+    /** Sends all answers in one request; the server saves them in a single transaction. */
+    private void submitAnswers(Button submitButton) {
+        JSONArray answers = new JSONArray();
+        try {
+            for (int i = 0; i < selectedAnswers.length; i++) {
+                JSONObject answer = new JSONObject();
+                answer.put("questionId", i + 1);
+                answer.put("optionIndex", selectedAnswers[i]);
+                answers.put(answer);
+            }
+        } catch (JSONException e) {
+            Log.e(TAG, "Failed to build answers payload", e);
+            submitButton.setEnabled(true);
+            return;
+        }
 
-            Handler handler = new Handler(Looper.getMainLooper());
-            handler.post(() -> {
-                String[] field = new String[3];
-                field[0] = "userId";
-                field[1] = "questionId";
-                field[2] = "optionId";
-                String[] data = new String[3];
-                data[0] = String.valueOf(userId);
-                data[1] = String.valueOf(questionId);
-                data[2] = String.valueOf(optionId);
-                if (logged) {
-                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/update_answer.php", "POST", field, data);
-                    if (putData.startPut()) {
-                        if (putData.onComplete()) {
-                            String result = putData.getResult();
-                            if (result.equals("Update Success")) {
-                                Snackbar.make(findViewById(R.id.main), result, Snackbar.LENGTH_LONG).show();
-                                Intent intent = new Intent(getApplicationContext(), MainPage.class);
-                                startActivity(intent);
-                                finish();
-                            } else {
-                                Snackbar.make(findViewById(R.id.main), "Error: Please try again!", Snackbar.LENGTH_LONG).show();
-                            }
-                        }
-                    }
+        executor.execute(() -> {
+            String[] field = {"token", "answers"};
+            String[] data = {Session.getToken(), answers.toString()};
+            PutData putData = new PutData(ApiConfig.SUBMIT_ANSWERS_URL, "POST", field, data);
+            boolean sent = putData.startPut() && putData.onComplete();
+            String result = sent ? putData.getResult() : "";
+            runOnUiThread(() -> {
+                if (result.equals("Save Success")) {
+                    Intent intent = new Intent(getApplicationContext(), MainPage.class);
+                    startActivity(intent);
+                    finish();
                 } else {
-                    PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/user_answer.php", "POST", field, data);
-                    if (putData.startPut()) {
-                        if (putData.onComplete()) {
-                            String result = putData.getResult();
-                            if (result.equals("Insert Success")) {
-                                Snackbar.make(findViewById(R.id.main), result, Snackbar.LENGTH_LONG).show();
-                                Intent intent = new Intent(getApplicationContext(), MainPage.class);
-                                startActivity(intent);
-                                finish();
-                            } else {
-                                Snackbar.make(findViewById(R.id.main), "Error: Please try again!", Snackbar.LENGTH_LONG).show();
-                            }
-                        }
-                    }
+                    submitButton.setEnabled(true);
+                    Snackbar.make(findViewById(R.id.main), "Error: Please try again!", Snackbar.LENGTH_LONG).show();
                 }
             });
-        }
+        });
     }
 
     private boolean areAllQuestionsAnswered() {
@@ -194,5 +185,11 @@ public class Survey extends AppCompatActivity {
             scrollView.smoothScrollTo(0, y);
             targetView.requestFocus();
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdownNow();
     }
 }

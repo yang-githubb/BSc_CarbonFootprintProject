@@ -13,29 +13,31 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import org.apache.commons.math3.ml.clustering.*;
-import org.apache.commons.math3.ml.clustering.CentroidCluster;
-
 import com.vishnusivadas.advanced_httpurlconnection.FetchData;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import smile.clustering.KMeans;
 
 public class action extends Fragment {
-    TextView textView;
-    int userClusterId;
-    private LinearLayoutManager layoutManager;
+
+    private static final String TAG = "ActionFragment";
+    private static final int QUESTION_COUNT = 17;
+    private static final int MAX_CLUSTERS = 3;
+
+    private TextView textView;
+    private RecyclerView recyclerView;
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     public action() {
         // Required empty public constructor
@@ -49,177 +51,166 @@ public class action extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        recyclerView = view.findViewById(R.id.rvHorizontalCards);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        textView = view.findViewById(R.id.textViewClusterInfo);
+
+        executor.execute(this::loadRecommendations);
+    }
+
+    /**
+     * Fetches every user's answers, clusters them, finds the questions the
+     * logged-in user's cluster performs worst on, and asks the backend for
+     * recommended actions for those questions.
+     */
+    private void loadRecommendations() {
+        FetchData fetchData = new FetchData(ApiConfig.CLUSTER_CALC_URL + "?token=" + Session.getToken());
+        if (!fetchData.startFetch() || !fetchData.onComplete()) {
+            return;
+        }
         try {
-            super.onViewCreated(view, savedInstanceState);
-            RecyclerView recyclerView = view.findViewById(R.id.rvHorizontalCards);
-            layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
-            recyclerView.setLayoutManager(layoutManager);
-            List<DataItem> texts = null;
-            texts = getActions();
+            Map<Integer, double[]> userAnswers = parseAnswers(fetchData.getResult());
+            if (userAnswers.isEmpty() || !userAnswers.containsKey(Session.getUserId())) {
+                Log.w(TAG, "No survey answers found for the current user");
+                return;
+            }
 
-            Log.d("fegerg", texts.toString());
-            CustomAdapter adapter = new CustomAdapter(texts);
-            recyclerView.setAdapter(adapter);
-            textView = view.findViewById(R.id.textViewClusterInfo);
+            List<Integer> userIds = new ArrayList<>(userAnswers.keySet());
+            double[][] dataMatrix = new double[userIds.size()][];
+            for (int i = 0; i < userIds.size(); i++) {
+                dataMatrix[i] = userAnswers.get(userIds.get(i));
+            }
 
-            fetchDataAndCluster();
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
+            double[][] centroids;
+            int userClusterId;
+            if (userIds.size() < 2) {
+                // Not enough users to cluster: treat the lone user as their own cluster.
+                centroids = dataMatrix;
+                userClusterId = 0;
+            } else {
+                int k = Math.min(MAX_CLUSTERS, userIds.size());
+                KMeans kmeans = KMeans.fit(dataMatrix, k);
+                centroids = kmeans.centroids;
+                userClusterId = kmeans.y[userIds.indexOf(Session.getUserId())];
+            }
+
+            ClusterAnalysis analysis = new ClusterAnalysis(centroids, userClusterId);
+            Map<String, String> userCategoryAction = analysis.compareWithMaxValues();
+
+            String feedback = buildFeedback(userCategoryAction);
+            List<DataItem> recommendations = fetchRecommendedActions(userCategoryAction);
+
+            if (isAdded()) {
+                requireActivity().runOnUiThread(() -> {
+                    if (!isAdded()) {
+                        return;
+                    }
+                    textView.setText(feedback);
+                    recyclerView.setAdapter(new CustomAdapter(recommendations));
+                });
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to load recommendations", e);
         }
     }
 
-    private void fetchDataAndCluster() {
-        FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/clusterCalc.php");
-        if (fetchData.startFetch()) {
-            if (fetchData.onComplete()) {
-                String result = fetchData.getResult();
-                try {
-                    JSONArray jsonArray = new JSONArray(result);
-                    Map<Integer, List<Integer>> userData = new HashMap<>();
+    /** Parses the answers table into one row of 17 option indexes per user. */
+    private Map<Integer, double[]> parseAnswers(String json) throws Exception {
+        JSONArray jsonArray = new JSONArray(json);
+        Map<Integer, double[]> userAnswers = new HashMap<>();
+        for (int i = 0; i < jsonArray.length(); i++) {
+            JSONObject obj = jsonArray.getJSONObject(i);
+            int userId = obj.getInt("user_id");
+            int questionId = obj.getInt("question_id");
+            int answer = obj.getInt("option_index");
+            if (questionId < 1 || questionId > QUESTION_COUNT) {
+                continue;
+            }
+            double[] answers = userAnswers.get(userId);
+            if (answers == null) {
+                answers = new double[QUESTION_COUNT];
+                userAnswers.put(userId, answers);
+            }
+            answers[questionId - 1] = answer;
+        }
+        return userAnswers;
+    }
 
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject obj = jsonArray.getJSONObject(i);
-                        int userId = obj.getInt("user_id");
-                        int questionId = obj.getInt("question_id");
-                        int answer = obj.getInt("option_index");
-
-                        List<Integer> answers = userData.computeIfAbsent(userId, k -> new ArrayList<>());
-                        while (answers.size() <= questionId) {
-                            answers.add(0);
-                        }
-                        answers.set(questionId, answer);
-                    }
-                    List<Integer> keys = new ArrayList<>(userData.keySet());
-                    double[][] dataMatrix = new double[userData.size()][];
-                    for (int i = 0; i < keys.size(); i++) {
-                        List<Integer> answers = userData.get(keys.get(i));
-                        assert answers != null;
-                        dataMatrix[i] = answers.stream().mapToDouble(Integer::doubleValue).toArray();
-                    }
-
-                    KMeans kmeans = KMeans.fit(dataMatrix, 3);
-                    int[] labels = kmeans.y;
-
-                    Map<Integer, Integer> userClusterMap = new HashMap<>();
-                    for (int i = 0; i < keys.size(); i++) {
-                        userClusterMap.put(keys.get(i), labels[i]);
-                    }
-
-                    StringBuilder output = getStringBuilder(kmeans);
-                    textView.setText(output);
-                } catch (Exception e) {
-                    e.printStackTrace();
+    /** Asks the backend recommender for actions matching the flagged questions. */
+    private List<DataItem> fetchRecommendedActions(Map<String, String> userCategoryAction) {
+        List<DataItem> recommendActions = new ArrayList<>();
+        try {
+            JSONObject jsonObject = new JSONObject();
+            for (Map.Entry<String, String> entry : userCategoryAction.entrySet()) {
+                jsonObject.put(entry.getKey(), entry.getValue());
+            }
+            String url = ApiConfig.GET_ACTION_URL
+                    + "?token=" + Session.getToken()
+                    + "&userQues=" + URLEncoder.encode(jsonObject.toString(), "UTF-8");
+            FetchData fd = new FetchData(url);
+            if (fd.startFetch() && fd.onComplete()) {
+                JSONArray recommendations = new JSONArray(fd.getResult());
+                for (int i = 0; i < recommendations.length(); i++) {
+                    JSONObject recommendation = recommendations.getJSONObject(i);
+                    recommendActions.add(new DataItem(
+                            recommendation.getString("name"),
+                            recommendation.getString("description")));
                 }
             }
+        } catch (UnsupportedEncodingException e) {
+            throw new AssertionError(e);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to fetch recommended actions", e);
         }
+        return recommendActions;
     }
 
     @NonNull
-    private StringBuilder getStringBuilder(KMeans kmeans) {
-        ClusterAnalysis analysis = new ClusterAnalysis(kmeans.centroids, userClusterId);
-        Map<String, String> userCategoryAction;
-        userCategoryAction = analysis.compareWithMaxValues();
-
+    private static String buildFeedback(Map<String, String> userCategoryAction) {
         Map<String, String> feedbackMap = new HashMap<>();
 
-        feedbackMap.put("How many people live in your household?", "Try minimize the home electricity usage.");
-        feedbackMap.put("What is the source of energy?", "Explore the use of renewable energy more.");
-        feedbackMap.put("How much energy do you approximately consume monthly?", "You are using too much energy per month.");
-        feedbackMap.put("How do you take a bath on daily basis?", "You may consider shorter showers to save water and energy.");
-        feedbackMap.put("How often do you do laundry?", "You should save up more cloth before you goes to laundry.");
-        feedbackMap.put("How much waste you throw per week? (In kg)", "Try recycling and composting.");
-        feedbackMap.put("Where do you usually purchase groceries?", "Local goods can help to reduce carbon footprint.");
-        feedbackMap.put("How much do you usually spend on groceries weekly?", "Plan the portion of meals to minimize waste and save money.");
-        feedbackMap.put("How frequently do you eat at a restaurant on a weekly basis?", "Home cook can not only reduce your carbon footprint, it can also reduce carbon footprint.");
-        feedbackMap.put("Do you pack the leftover food in a restaurant when you have not finished eating?", "Order less or pack the food if you cannot finish the food.");
-        feedbackMap.put("If the food that you have prepared is not finished, what do you do with it?", "Leftover can be used as composition as well.");
-        feedbackMap.put("Will you try your best to finish the food on your plate?", "Try to finish the food on their plate to reduce waste.");
-        feedbackMap.put("How frequently do you bring your bag whenever you go shopping?", "Bring a reusable bags whenever shopping to reduce plastic waste.");
-        feedbackMap.put("Do you or your family member own a Hybrid or electric vehicle?", "Having a hybrid or electric vehicles is beneficial to Earth.");
-        feedbackMap.put("How many fuel consumption on weekly basis?", "Try public transport, you might make new friends!");
-        feedbackMap.put("How do you go to school?", "You can have a good time with friends in school bus or carpool.");
-        feedbackMap.put("What means of transport do you use the most?", "You may opt for eco-friendlier modes of transportation to reduce their carbon footprint.");
+        feedbackMap.put("How many people live in your household?", "Try to minimize your home's electricity usage.");
+        feedbackMap.put("What is the source of energy?", "Explore renewable energy options for your home.");
+        feedbackMap.put("How much energy do you approximately consume monthly?", "Your monthly energy usage is on the high side - look for ways to cut back.");
+        feedbackMap.put("How do you take a bath on daily basis?", "Consider shorter showers to save water and energy.");
+        feedbackMap.put("How often do you do laundry?", "Wait for a full load before doing laundry to save water and energy.");
+        feedbackMap.put("How much waste you throw per week? (In kg)", "Try recycling and composting to reduce your waste.");
+        feedbackMap.put("Where do you usually purchase groceries?", "Buying local goods helps reduce your carbon footprint.");
+        feedbackMap.put("How much do you usually spend on groceries weekly?", "Plan your meal portions to minimize waste and save money.");
+        feedbackMap.put("How frequently do you eat at a restaurant on a weekly basis?", "Cooking at home reduces both your carbon footprint and your expenses.");
+        feedbackMap.put("Do you pack the leftover food in a restaurant when you can't finish?", "Order less or pack the leftovers when you cannot finish your food.");
+        feedbackMap.put("If the food that you have prepared is not finished, what will you do?", "Leftovers can be kept for later or turned into compost.");
+        feedbackMap.put("Will you try your best to finish the food on your plate?", "Try to finish the food on your plate to reduce waste.");
+        feedbackMap.put("How frequently do you bring your bag whenever you go shopping?", "Bring a reusable bag whenever you shop to reduce plastic waste.");
+        feedbackMap.put("Do you or your family member own a Hybrid or electric car?", "A hybrid or electric vehicle would greatly cut your transport emissions.");
+        feedbackMap.put("How many fuel consumption on weekly basis?", "Try public transport - you might make new friends!");
+        feedbackMap.put("How do you go to school?", "The school bus or a carpool is a greener way to get to school.");
+        feedbackMap.put("What means of transport do you use the most?", "Consider eco-friendlier modes of transportation to reduce your carbon footprint.");
 
         StringBuilder output = new StringBuilder();
         userCategoryAction.forEach((question, category) -> {
             String feedback = feedbackMap.get(question);
             if (feedback != null) {
-                output.append("\u2022 ").append(feedback).append("\n");
+                output.append("• ").append(feedback).append("\n");
             }
         });
-        return output;
+        if (output.length() == 0) {
+            output.append("Great job! Your answers already compare well with other users.");
+        }
+        return output.toString();
     }
 
-    private List<DataItem> getActions() throws JSONException {
-        List<DataItem> recommendActions = new ArrayList<>();
-        FetchData fetchData = new FetchData("http://192.168.100.4/CarbonFootprintFYP/clusterCalc.php");
-        if (fetchData.startFetch()) {
-            if (fetchData.onComplete()) {
-                String result = fetchData.getResult();
-                try {
-                    JSONArray jsonArray = new JSONArray(result);
-                    Map<Integer, List<Integer>> userData = new HashMap<>();
-
-                    for (int i = 0; i < jsonArray.length(); i++) {
-                        JSONObject obj = jsonArray.getJSONObject(i);
-                        int userId = obj.getInt("user_id");
-                        int questionId = obj.getInt("question_id");
-                        int answer = obj.getInt("option_index");
-
-                        List<Integer> answers = userData.computeIfAbsent(userId, k -> new ArrayList<>());
-                        while (answers.size() <= questionId) {
-                            answers.add(0);
-                        }
-                        answers.set(questionId, answer);
-                    }
-
-                    List<Integer> keys = new ArrayList<>(userData.keySet());
-                    double[][] dataMatrix = new double[userData.size()][];
-                    for (int i = 0; i < keys.size(); i++) {
-                        List<Integer> answers = userData.get(keys.get(i));
-                        assert answers != null;
-                        dataMatrix[i] = answers.stream().mapToDouble(Integer::doubleValue).toArray();
-                    }
-
-                    KMeans kmeans = KMeans.fit(dataMatrix, 3);
-                    ClusterAnalysis analysis = new ClusterAnalysis(kmeans.centroids, userClusterId);
-                    Map<String, String> userCategoryAction = analysis.compareWithMaxValues();
-                    JSONObject jsonObject = new JSONObject();
-                    for (Map.Entry<String, String> entry : userCategoryAction.entrySet()) {
-                        jsonObject.put(entry.getKey(), entry.getValue());
-                    }
-                    FetchData fd = new FetchData("http://192.168.100.4/CarbonFootprintFYP/getAction.php?userQues=" + jsonObject);
-                    if (fd.startFetch()) {
-                        if (fd.onComplete()) {
-                            String result1 = fd.getResult();
-                            String[] recommendations = result1.split("\\), \\(");
-
-                            for (String recommendation : recommendations) {
-                                recommendation = recommendation.replaceAll("[()']", "");
-                                recommendation = recommendation.replaceAll("\\[", "").replaceAll("\\]","");
-
-                                String[] parts = recommendation.split(", ", 2);
-                                if (parts.length == 2) {
-                                    String actionName = parts[0].trim();
-                                    String actionDescription = parts[1].trim();
-                                    recommendActions.add(new DataItem(actionName, actionDescription));
-                                }
-                            }
-                        }
-                    }
-                    return recommendActions;
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-        return recommendActions;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        executor.shutdownNow();
     }
 }
 
 class DataItem {
-    private String name;
-    private String description;
+    private final String name;
+    private final String description;
 
     public DataItem(String name, String description) {
         this.name = name;

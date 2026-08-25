@@ -2,8 +2,6 @@ package com.example.carbonfootprint;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -19,12 +17,17 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.vishnusivadas.advanced_httpurlconnection.PutData;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class SignUp extends AppCompatActivity {
 
     TextInputEditText textInputLayoutUsername, textInputLayoutPassword, textInputLayoutEmail;
     Button buttonSignUp;
     TextView textViewLogin;
     ProgressBar progressBar;
+
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +58,9 @@ public class SignUp extends AppCompatActivity {
             password = String.valueOf(textInputLayoutPassword.getText());
             email = String.valueOf(textInputLayoutEmail.getText());
 
-            if (!username.isEmpty() && !password.isEmpty() && !email.isEmpty()) {
+            if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {
+                Snackbar.make(findViewById(R.id.main), "All fields are required!", Snackbar.LENGTH_LONG).show();
+            } else {
                 boolean valid = true;
                 if (!isValidUsername(username)) {
                     textInputLayoutUsername.setError("Invalid username. Use 6-64 alphanumeric characters, underscores, hyphens, and periods.");
@@ -80,37 +85,33 @@ public class SignUp extends AppCompatActivity {
 
                 if (valid) {
                     progressBar.setVisibility(View.VISIBLE);
-                    Handler handler = new Handler(Looper.getMainLooper());
-                    handler.post(() -> {
-                        String[] field = new String[3];
-                        field[0] = "username";
-                        field[1] = "password";
-                        field[2] = "email";
-                        String[] data = new String[3];
-                        data[0] = username;
-                        data[1] = password;
-                        data[2] = email;
-                        PutData putData = new PutData("http://192.168.100.4/CarbonFootprintFYP/signup.php", "POST", field, data);
-                        if (putData.startPut()) {
-                            if (putData.onComplete()) {
-                                progressBar.setVisibility(View.GONE);
-                                String result = putData.getResult();
-                                if (result.equals("Sign Up Success")) {
-                                    Snackbar.make(findViewById(R.id.main), "Account created successfully!", Snackbar.LENGTH_LONG).show();
-                                    Intent intent = new Intent(getApplicationContext(), Login.class);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
-                                    Snackbar.make(findViewById(R.id.main), "Please try again!", Snackbar.LENGTH_LONG).show();
-                                }
+                    executor.execute(() -> {
+                        String[] field = {"username", "password", "email"};
+                        String[] data = {username, password, email};
+                        PutData putData = new PutData(ApiConfig.SIGNUP_URL, "POST", field, data);
+                        boolean sent = putData.startPut() && putData.onComplete();
+                        String result = sent ? putData.getResult() : "";
+                        runOnUiThread(() -> {
+                            progressBar.setVisibility(View.GONE);
+                            if (result.equals("Sign Up Success")) {
+                                Snackbar.make(findViewById(R.id.main), "Account created successfully!", Snackbar.LENGTH_LONG).show();
+                                Intent intent = new Intent(getApplicationContext(), Login.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Snackbar.make(findViewById(R.id.main), "Please try again!", Snackbar.LENGTH_LONG).show();
                             }
-                        }
+                        });
                     });
-                } else {
-                    Snackbar.make(findViewById(R.id.main), "All fields are required!", Snackbar.LENGTH_LONG).show();
                 }
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        executor.shutdownNow();
     }
 
     public boolean isValidUsername(String username) {

@@ -92,8 +92,8 @@ public class facts extends Fragment {
         initializeAutoScroll();
 
         TextView textView = view.findViewById(R.id.textViewRight);
-        long equivalent_tree = round((profile.total_amount) * 6);
-        String result = "You have cut down " + equivalent_tree + " trees in this year!";
+        long equivalent_tree = round(Session.getLastFootprintTonnes() * 6);
+        String result = "Your yearly footprint equals the carbon stored by " + equivalent_tree + " trees!";
         textView.setText(result);
 
         return view;
