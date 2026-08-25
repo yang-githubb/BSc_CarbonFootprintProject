@@ -27,11 +27,21 @@ The Carbon Footprint Analyser app is designed to raise awareness and educate use
 ### Dependencies
 
 - Android SDK v21 or newer
-- MySQL for Android for database management
+- A PHP + MySQL server (e.g. XAMPP) hosting the files in `Database/`
+- Python 3 with `scikit-learn` and `numpy` on the server, for the recommender (`Database/clusterAction.py`)
 
-### Database Configuration
+### Backend Configuration
 
-The app uses MySQL for user data and survey responses. The database schema is provided in `carbonfootprint_action.sql`. Import this file into your Android project to set up the necessary tables.
+1. Copy the `Database/` PHP files into your web server (e.g. `htdocs/CarbonFootprintFYP/`).
+2. Import `Database/finalDB_carbonfootprint.sql` into MySQL to create the `carbonfootprint` database. If you already have an older database, run `Database/migrations/001_add_api_token.sql` to add the API token column.
+3. Set your MySQL credentials in `Database/DataBaseConfig.php`.
+4. Point the app at your server by editing `BASE_URL` in `app/src/main/java/com/example/carbonfootprint/ApiConfig.java`.
+
+### API
+
+`login.php` returns a JSON response containing an API token; all other endpoints (`carbCalc.php`, `clusterCalc.php`, `getAction.php`, `submit_answers.php`) require that token and identify the user from it. Survey answers are submitted in one batch to `submit_answers.php` and saved in a single transaction.
+
+Note: traffic is plain HTTP intended for a local development network. Put the backend behind HTTPS before using it outside a lab setup.
 
 ## Contributing
 
