@@ -4,8 +4,6 @@ require "DataBaseConfig.php";
 class DataBase
 {
     public $connect;
-    public $data;
-    private $sql;
     protected $servername;
     protected $username;
     protected $password;
@@ -14,8 +12,6 @@ class DataBase
     public function __construct()
     {
         $this->connect = null;
-        $this->data = null;
-        $this->sql = null;
         $dbc = new DataBaseConfig();
         $this->servername = $dbc->servername;
         $this->username = $dbc->username;
@@ -29,118 +25,115 @@ class DataBase
         return $this->connect;
     }
 
-    function prepareData($data)
+    /**
+     * Verifies the credentials. On success stores a fresh API token and
+     * returns ['userId' => int, 'token' => string, 'hasAnswers' => bool];
+     * returns null on bad credentials.
+     */
+    function logIn($username, $password)
     {
-        return mysqli_real_escape_string($this->connect, stripslashes(htmlspecialchars($data)));
-    }
-
-    function logIn($table, $username, $password) {
-        $username = $this->prepareData($username);
-        $stmt = $this->connect->prepare("SELECT * FROM $table WHERE username = ?");
+        $stmt = $this->connect->prepare("SELECT id, password FROM users WHERE username = ?");
         $stmt->bind_param("s", $username);
         $stmt->execute();
-        $result = $stmt->get_result();
-        $row = $result->fetch_assoc();
-    
-        if ($row) {
-            $dbusername = $row['username'];
-            $dbpassword = $row['password'];
-            if ($dbusername === $username && password_verify($password, $dbpassword)) {
-                $userId = $this->getUserIdByUsername($username);
-                $stmt_answers = $this->connect->prepare("SELECT * FROM answers WHERE user_id = ?");
-                $stmt_answers->bind_param("s", $userId);
-                $stmt_answers->execute();               
-                $result_answers = $stmt_answers->get_result();
-                if ($result_answers->num_rows > 0) {
-                    return "Login Success";
-                } else {
-                    return "Survey";
-                }
-            } else {
-                return "Username or Password wrong";
-            }
-        } else {
-            return "Username or Password wrong";
+        $row = $stmt->get_result()->fetch_assoc();
+
+        if (!$row || !password_verify($password, $row['password'])) {
+            return null;
         }
+
+        $userId = (int) $row['id'];
+        $token = bin2hex(random_bytes(32));
+        $stmt = $this->connect->prepare("UPDATE users SET api_token = ? WHERE id = ?");
+        $stmt->bind_param("si", $token, $userId);
+        $stmt->execute();
+
+        return [
+            'userId' => $userId,
+            'token' => $token,
+            'hasAnswers' => $this->userHasAnswers($userId),
+        ];
     }
 
-    function signUp($table, $email, $username, $password) {
-        $stmt = $this->connect->prepare("INSERT INTO $table (email, username, password) VALUES (?, ?, ?)");
+    function signUp($email, $username, $password)
+    {
+        $stmt = $this->connect->prepare("INSERT INTO users (email, username, password) VALUES (?, ?, ?)");
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
         $stmt->bind_param("sss", $email, $username, $hashed_password);
         return $stmt->execute();
     }
 
-    function carbCalc($table, $userId) {
-        $userId = $this->prepareData($userId);
-        $table = mysqli_real_escape_string($this->connect, $table);
-    
-        $stmt = mysqli_prepare($this->connect, "SELECT * FROM $table WHERE user_id = ? AND question_id IN (?, ?, ?)");
-    
-        mysqli_stmt_bind_param($stmt, 'iiii', $userId, $q1, $q2, $q3);
-    
-        $q1 = 3;
-        $q2 = 6;
-        $q3 = 15;
-    
-        mysqli_stmt_execute($stmt);
-    
-        $result = mysqli_stmt_get_result($stmt);
-    
-        $rows = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    
-        // Close the statement
-        mysqli_stmt_close($stmt);
-    
-        return $rows;
-    }
-    
-
-    function clusterCalc($table) {
-        $this->sql = "SELECT * FROM " . $table;
-        $result = mysqli_query($this->connect, $this->sql);
-        
-        $rows = array();
-        while($row = mysqli_fetch_assoc($result)) {
-            $rows[] = $row;
+    /** Returns the user id for a valid API token, or null. */
+    function getUserIdByToken($token)
+    {
+        if (!is_string($token) || $token === '') {
+            return null;
         }
-        return $rows;
-    }
-
-    function insertAns($table, $userId, $questionId, $optionIndex) {
-        $stmt = $this->connect->prepare("INSERT INTO $table (user_id, question_id, option_index) VALUES (?, ?, ?)");
-        $stmt->bind_param("iii", $userId, $questionId, $optionIndex);
-        return $stmt->execute();
-    }
-
-    function updateAns($table, $userId, $questionId, $optionIndex) {
-        $stmt = $this->connect->prepare("UPDATE $table SET option_index = ? WHERE user_id = ? AND question_id = ?");
-        $stmt->bind_param("iii", $optionIndex, $userId, $questionId);
-        return $stmt->execute();
-    }
-
-    function getUserIdByUsername($username) {
-        $stmt = $this->connect->prepare("SELECT id FROM users WHERE username = ?");
-        $stmt->bind_param("s", $username);
+        $stmt = $this->connect->prepare("SELECT id FROM users WHERE api_token = ?");
+        $stmt->bind_param("s", $token);
         $stmt->execute();
-        $result = $stmt->get_result();
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            return $row['id'];
-        } else {
-            return null; 
+        $row = $stmt->get_result()->fetch_assoc();
+        return $row ? (int) $row['id'] : null;
+    }
+
+    function userHasAnswers($userId)
+    {
+        $stmt = $this->connect->prepare("SELECT 1 FROM answers WHERE user_id = ? LIMIT 1");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        return $stmt->get_result()->num_rows > 0;
+    }
+
+    /**
+     * Replaces all of a user's answers in a single transaction.
+     * $answers is a list of ['questionId' => int, 'optionIndex' => int].
+     */
+    function saveAnswers($userId, $answers)
+    {
+        $this->connect->begin_transaction();
+        try {
+            $stmt = $this->connect->prepare("DELETE FROM answers WHERE user_id = ?");
+            $stmt->bind_param("i", $userId);
+            $stmt->execute();
+
+            $stmt = $this->connect->prepare(
+                "INSERT INTO answers (user_id, question_id, option_index) VALUES (?, ?, ?)");
+            foreach ($answers as $answer) {
+                $questionId = (int) $answer['questionId'];
+                $optionIndex = (int) $answer['optionIndex'];
+                $stmt->bind_param("iii", $userId, $questionId, $optionIndex);
+                if (!$stmt->execute()) {
+                    throw new Exception("Insert failed");
+                }
+            }
+            $this->connect->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->connect->rollback();
+            return false;
         }
     }
 
-    function getAction() {
-        $stmt = $this->connect->prepare("SELECT * FROM actions");
+    /** Returns the answers that feed the footprint calculation. */
+    function carbCalc($userId)
+    {
+        $stmt = $this->connect->prepare(
+            "SELECT question_id, option_index FROM answers WHERE user_id = ? AND question_id IN (3, 6, 15)");
+        $stmt->bind_param("i", $userId);
         $stmt->execute();
-        $result = $stmt->get_result();
-        $rows = array();
-        while($row = mysqli_fetch_assoc($result)) {
-            $rows[] = $row;
-        }
-        return $rows;
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
-    
-}?>
+
+    /** Returns every user's answers (option indexes only) for clustering. */
+    function clusterCalc()
+    {
+        $result = mysqli_query($this->connect, "SELECT user_id, question_id, option_index FROM answers");
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    }
+
+    function getAction()
+    {
+        $result = mysqli_query($this->connect, "SELECT * FROM actions");
+        return mysqli_fetch_all($result, MYSQLI_ASSOC);
+    }
+}
+?>

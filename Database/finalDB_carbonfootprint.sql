@@ -719,7 +719,8 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `username` varchar(255) NOT NULL,
   `password` text NOT NULL,
-  `carbon_footprint` int(11) NOT NULL
+  `carbon_footprint` int(11) NOT NULL,
+  `api_token` varchar(64) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
@@ -808,7 +809,8 @@ ALTER TABLE `questions`
 --
 ALTER TABLE `users`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `username` (`username`);
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `api_token` (`api_token`);
 
 --
 -- AUTO_INCREMENT for dumped tables

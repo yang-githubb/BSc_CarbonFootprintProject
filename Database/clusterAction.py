@@ -1,136 +1,101 @@
-import sys
+"""Recommends carbon-reduction actions for a user's flagged survey questions.
+
+Usage: python clusterAction.py <user_questions.json> <actions.json>
+
+The first file maps flagged question text to its category ("home", "waste",
+"Transportation"); the second is the actions table exported as JSON. Actions
+in each category are clustered (TF-IDF + KMeans); for each flagged question
+the actions in the question's predicted cluster are ranked by cosine
+similarity and the best matches are returned.
+
+Output: a JSON array of {"name": ..., "description": ...} objects.
+"""
+
 import json
-import urllib.parse
-from sklearn.feature_extraction.text import TfidfVectorizer
+import sys
+
+import numpy as np
 from sklearn.cluster import KMeans
-import traceback
-import random
-from sklearn.metrics.pairwise import cosine_similarity;
-import numpy as np;
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
-try:
-    def read_json_file(file_path):
-        with open(file_path, 'r') as file:
-            return json.load(file)
-        
-    def read_string_file(file_path):
-        with open(file_path, 'r') as file:
-            json_string = file.read()
-            return json.loads(json_string)
-        
-    def extract_actions_by_category(data, category):
-        return [action['action_name'] for action in data if action['action_category'] == category]
-
-    def cluster_solutions(solutions, n_clusters=3):
-        vectorizer = TfidfVectorizer()
-        X = vectorizer.fit_transform(solutions)
-        kmeans = KMeans(n_clusters=n_clusters)
-        kmeans.fit(X)
-        return kmeans, vectorizer
-
-    def recommend_actions(question, cluster_label, actions, vectorizer, kmeans_model, top_n=2):
-        question_vec = vectorizer.transform([question])
-        predicted_cluster = kmeans_model.predict(question_vec)[0]
-        
-        if predicted_cluster == cluster_label:
-            action_vecs = vectorizer.transform(actions)
-            similarities = cosine_similarity(question_vec, action_vecs)[0]
-            
-            sorted_actions_indices = np.argsort(similarities)[::-1]
-            
-            top_actions_indices = sorted_actions_indices[:top_n]
-            recommended_actions = [actions[i] for i in top_actions_indices]
-            
-            return recommended_actions
-        else:
-            return None
+TOP_N = 2
+MAX_CLUSTERS = 3
+RANDOM_STATE = 42
 
 
-    def predict_cluster(question, kmeans_model, vectorizer):
-        question_vec = vectorizer.transform([question])
-        predicted_cluster = kmeans_model.predict(question_vec)[0]
-        return predicted_cluster
-    
-    def extract_actionsnameanddesc_by_category(data):
-        return [(action['action_name'], action['action_description']) for action in data]
+
+def read_json_file(file_path):
+    with open(file_path, "r", encoding="utf-8") as file:
+        return json.load(file)
 
 
-    if __name__ == "__main__":
-        json_data = read_json_file('temp_json_data.json')
-        question = read_string_file('temp_user_questions.json')        
+def cluster_actions(action_names):
+    vectorizer = TfidfVectorizer()
+    vectors = vectorizer.fit_transform(action_names)
+    n_clusters = min(MAX_CLUSTERS, len(action_names))
+    kmeans = KMeans(n_clusters=n_clusters, random_state=RANDOM_STATE, n_init=10)
+    labels = kmeans.fit_predict(vectors)
+    return vectorizer, kmeans, labels, vectors
 
-        home_actions = extract_actions_by_category(json_data, 'home')
-        transport_actions = extract_actions_by_category(json_data, 'Transportation')
-        waste_actions = extract_actions_by_category(json_data, 'waste')
-        
-        all_action = extract_actionsnameanddesc_by_category(json_data)
 
-        if home_actions:
-            km_home, vectorizer_home = cluster_solutions(home_actions)
-        if transport_actions:
-            km_transport, vectorizer_transport = cluster_solutions(transport_actions)
-        if waste_actions:
-            km_waste, vectorizer_waste = cluster_solutions(waste_actions)
+def recommend_for_question(question, vectorizer, kmeans, labels, vectors, action_names):
+    """Ranks the actions in the question's predicted cluster by similarity."""
+    question_vec = vectorizer.transform([question])
+    predicted_cluster = kmeans.predict(question_vec)[0]
 
-        food_list = []
-        house_list = []
-        transportation_list = []
-        for ques, category in question.items():
-            if category.lower() == "waste":
-                food_list.append(ques)
-            elif category.lower() == "home":
-                house_list.append(ques)
-            elif category.lower() == "transportation":
-                transportation_list.append(ques)
-                
-        recommendations = {}
-        if house_list:
-            home_inf = vectorizer_home.transform(house_list)
-            predicted_home_label = km_home.predict(home_inf)[0]
-            cluster_label = predicted_home_label
-            actions = home_actions
-            vectorizer = vectorizer_home
-            kmeans_model = km_home
-            for question_text in house_list:
-                recommended_actions = recommend_actions(question_text, cluster_label, actions, vectorizer, kmeans_model)
-                recommendations[question_text] = recommended_actions
+    cluster_indices = [i for i, label in enumerate(labels) if label == predicted_cluster]
+    if not cluster_indices:
+        cluster_indices = list(range(len(action_names)))
 
-        if food_list:
-            waste_inf = vectorizer_waste.transform(food_list)
-            predicted_waste_label = km_waste.predict(waste_inf)[0]
-            cluster_label = predicted_waste_label
-            actions = waste_actions
-            vectorizer = vectorizer_waste
-            kmeans_model = km_waste
-            for question_text in food_list:
-                recommended_actions = recommend_actions(question_text, cluster_label, actions, vectorizer, kmeans_model)
-                recommendations[question_text] = recommended_actions
-                
-        if transportation_list:
-            transport_inf = vectorizer_transport.transform(transportation_list)
-            predicted_transport_label = km_transport.predict(transport_inf)[0]
-            cluster_label = predicted_transport_label
-            actions = transport_actions
-            vectorizer = vectorizer_transport
-            kmeans_model = km_transport
-            for question_text in transportation_list:
-                recommended_actions = recommend_actions(question_text, cluster_label, actions, vectorizer, kmeans_model)
-                recommendations[question_text] = recommended_actions
-                            
-        recommendation_list = []
-        for recommended_actname in recommendations.values():
-            if recommended_actname is not None: 
-                for action_name, action_description in all_action:
-                    if action_name in recommended_actname:
-                        recommendation_list.append((action_name, action_description))
-            else:
-                    random_action = random.choice(all_action) 
-                    recommendation_list.append((random_action[0], random_action[1]))        
-        
-        print(set(recommendation_list))
-except Exception as e:
-    error_message = str(e)
-    error_traceback = traceback.format_exc()
-    print("An error occurred: ", error_message)
-    print("Traceback details:")
-    print(error_traceback)
+    similarities = cosine_similarity(question_vec, vectors[cluster_indices])[0]
+    ranked = np.argsort(similarities)[::-1][:TOP_N]
+    return [action_names[cluster_indices[i]] for i in ranked]
+
+
+def main():
+    user_questions_path = sys.argv[1] if len(sys.argv) > 1 else "temp_user_questions.json"
+    actions_path = sys.argv[2] if len(sys.argv) > 2 else "temp_json_data.json"
+
+    flagged_questions = read_json_file(user_questions_path)
+    actions = read_json_file(actions_path)
+
+    descriptions = {action["action_name"]: action["action_description"] for action in actions}
+    # Category values in the database are inconsistently cased ("waste" and
+    # "Waste"), so group and look up case-insensitively.
+    actions_by_category = {}
+    for action in actions:
+        actions_by_category.setdefault(action["action_category"].lower(), []).append(action["action_name"])
+
+    models = {
+        category: cluster_actions(names)
+        for category, names in actions_by_category.items()
+        if names
+    }
+
+    recommended_names = []
+    for question, category in flagged_questions.items():
+        db_category = category.lower()
+        if db_category not in models:
+            continue
+        vectorizer, kmeans, labels, vectors = models[db_category]
+        recommended_names.extend(
+            recommend_for_question(
+                question, vectorizer, kmeans, labels, vectors, actions_by_category[db_category]
+            )
+        )
+
+    # Dedupe while preserving ranking order.
+    unique_names = list(dict.fromkeys(recommended_names))
+    recommendations = [
+        {"name": name, "description": descriptions[name]} for name in unique_names
+    ]
+    print(json.dumps(recommendations))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception as exc:  # noqa: BLE001 - surface errors to the PHP caller
+        print(json.dumps({"error": str(exc)}))
+        sys.exit(1)
