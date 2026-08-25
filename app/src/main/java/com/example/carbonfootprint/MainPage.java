@@ -1,7 +1,5 @@
 package com.example.carbonfootprint;
 
-import static com.example.carbonfootprint.Login.username;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -32,7 +30,6 @@ public class MainPage extends AppCompatActivity implements BottomNavigationView.
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        String username = getIntent().getStringExtra("USER_ID");
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         setTitle("Carbon Footprint FYP");
@@ -78,8 +75,11 @@ public class MainPage extends AppCompatActivity implements BottomNavigationView.
             Intent intent = new Intent(MainPage.this, AboutActivity.class);
             startActivity(intent);
         } else if (id == R.id.action_logout) {
+            Session.clear();
             Intent intent = new Intent(MainPage.this, Login.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
+            finish();
         }
 
         return super.onOptionsItemSelected(item);
