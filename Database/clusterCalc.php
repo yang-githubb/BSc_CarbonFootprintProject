@@ -1,10 +1,9 @@
 <?php
-require "DataBase.php";
-$db = new DataBase();
-if ($db->dbConnect()) {
-    $result = $db->clusterCalc("answers");
-    echo json_encode($result);
-} else {
-    echo json_encode(["error" => "Error: Database connection or invalid userId"]);
-}
+require "auth.php";
+
+// Returns every user's answers (ids and option indexes only) so the app can
+// cluster users. Requires a valid token.
+header('Content-Type: application/json');
+list($db, $userId) = requireAuthenticatedUser();
+echo json_encode($db->clusterCalc());
 ?>

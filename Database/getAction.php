@@ -1,36 +1,44 @@
 <?php
-require "DataBase.php";
-$db = new DataBase();
-if ($db->dbConnect()) {
-    if (isset($_GET['userQues'])) {
-        $result = $db->getAction("actions");
-        if ($result) {
-            $userQuestions = $_GET['userQues'];
-            $json_data = json_encode($result);
+require "auth.php";
 
-            // Temp file paths
-            $userQuestionsFile = 'temp_user_questions.json';
-            $jsonDataFile = 'temp_json_data.json';
+// Runs the Python recommender for the flagged questions passed in "userQues"
+// (a JSON object of question text => category) and relays its JSON output.
+header('Content-Type: application/json');
+list($db, $userId) = requireAuthenticatedUser();
 
-            file_put_contents($userQuestionsFile, $userQuestions);
-            file_put_contents($jsonDataFile, $json_data);
+if (!isset($_GET['userQues'])) {
+    echo json_encode(["error" => "User questions not set"]);
+    exit;
+}
 
-            $python_script_path = escapeshellarg("C:/xampp/htdocs/CarbonFootprintFYP/clusterAction.py");
-            $command = "python $python_script_path $userQuestionsFile $jsonDataFile";
-            exec($command, $output, $return_var);
+$userQuestions = json_decode($_GET['userQues'], true);
+if (!is_array($userQuestions)) {
+    echo json_encode(["error" => "userQues must be a JSON object"]);
+    exit;
+}
 
-            if ($return_var === 0) {
-                echo implode("\n", $output);
-            } else {
-                echo "Error executing Python script";
-            }
-        } else {
-            echo "No data found";
-        }
-    } else {
-        echo "User questions not set";
-    }
+$actions = $db->getAction();
+if (!$actions) {
+    echo json_encode(["error" => "No data found"]);
+    exit;
+}
+
+$userQuestionsFile = tempnam(sys_get_temp_dir(), 'user_questions_');
+$jsonDataFile = tempnam(sys_get_temp_dir(), 'actions_');
+file_put_contents($userQuestionsFile, json_encode($userQuestions));
+file_put_contents($jsonDataFile, json_encode($actions));
+
+$command = "python " . escapeshellarg(__DIR__ . "/clusterAction.py")
+    . " " . escapeshellarg($userQuestionsFile)
+    . " " . escapeshellarg($jsonDataFile);
+exec($command, $output, $return_var);
+
+unlink($userQuestionsFile);
+unlink($jsonDataFile);
+
+if ($return_var === 0) {
+    echo implode("\n", $output);
 } else {
-    echo "Failed to connect to database";
+    echo json_encode(["error" => "Error executing Python script"]);
 }
 ?>

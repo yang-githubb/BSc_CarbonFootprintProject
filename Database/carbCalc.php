@@ -1,11 +1,8 @@
 <?php
-require "DataBase.php";
-$db = new DataBase();
-if (isset($_GET['userId']) && $db->dbConnect()) {
-    $userId = intval($_GET['userId']); 
-    $result = $db->carbCalc("answers", $userId);
-    echo json_encode($result);
-} else {
-    echo json_encode(["error" => "Error: Database connection or invalid userId"]);
-}
+require "auth.php";
+
+// Returns the authenticated user's footprint-relevant answers.
+header('Content-Type: application/json');
+list($db, $userId) = requireAuthenticatedUser();
+echo json_encode($db->carbCalc($userId));
 ?>
